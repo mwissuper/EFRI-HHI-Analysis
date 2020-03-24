@@ -2,6 +2,8 @@
 
 clear all; close all; clc;
 
+% hi
+
 subj_array = 3:14;
 subj_array_force = [3:5 8:13]; % HHI_01 and HHI_02 are pilots. HHI_06, _07, _14 are all missing Fx in the force data (force was unplugged)
 
