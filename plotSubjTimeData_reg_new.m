@@ -1,10 +1,11 @@
 % Plot time series data for an individual subject. Plot only significant
-% predictors from regression. Tension is positive for sensor all
-% directions.
+% predictors from regression. Tension is positive for sensor in all
+% directions. However, need to negate force in all directions when plotting
+% force on POB.
 
 clear; clc; close all;
 
-subj_array_force = [3:5 8:14];
+subj_array_force = [3:5 8:13];
 s2 = [5 1 11 8.5]; % paper size
 plotind = 0;
 numcols = 2; numrows = 3;
@@ -12,7 +13,7 @@ colors(1,:) = [0.00,0.45,0.74]; % nice blue
 colors(2,:) = [0.85,0.33,0.10]; % nice red
 colors(3,:) = [0.47,0.67,0.19]; % nice green
 
-for subj = 8%subj_array_force
+for subj = subj_array_force
     filename = sprintf('HHI2017_%i.mat',subj);
     load(filename);
 

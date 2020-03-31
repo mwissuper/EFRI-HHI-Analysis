@@ -39,15 +39,6 @@ for subj = subj_array_force
         meanVx(n,i/2) = nanmean(LateGroup.meanVx(rows));
         meanPosVx(n,i/2) = nanmean(LateGroup.meanPosVx(rows));
         meanNegVx(n,i/2) = nanmean(LateGroup.meanNegVx(rows));
-%         % Regression rFin to force (nan value if n.s. fit)
-%         meanMx(n,i/2) = nanmean(LateGroup.mx(rows));
-%         SDMx(n,i/2) = nanstd(LateGroup.mx(rows));
-%         meanBx(n,i/2) = nanmean(LateGroup.bx(rows));
-%         SDBx(n,i/2) = nanstd(LateGroup.bx(rows));
-%         meanKx(n,i/2) = nanmean(LateGroup.kx(rows));
-%         SDKx(n,i/2) = nanstd(LateGroup.kx(rows));
-%         meanRsqx(n,i/2) = nanmean(LateGroup.Rsqx(rows));
-%         SDRsqx(n,i/2) = nanstd(LateGroup.Rsqx(rows));
         % corr power to Fresid
         meanrPowerFresX(n,i/2) = nanmean(LateGroup.rPowerFresX(rows));
         
@@ -76,15 +67,6 @@ for subj = subj_array_force
         meanVy(n,i/2) = nanmean(LateGroup.meanVy(rows));
         meanPosVy(n,i/2) = nanmean(LateGroup.meanPosVy(rows));
         meanNegVy(n,i/2) = nanmean(LateGroup.meanNegVy(rows));
-        % Regression rFin to force (nan value if n.s. fit)
-%         meanMy(n,i/2) = nanmean(LateGroup.my(rows));
-%         SDMy(n,i/2) = nanstd(LateGroup.my(rows));
-%         meanBy(n,i/2) = nanmean(LateGroup.by(rows));
-%         SDBy(n,i/2) = nanstd(LateGroup.by(rows));
-%         meanKy(n,i/2) = nanmean(LateGroup.ky(rows));
-%         SDKy(n,i/2) = nanstd(LateGroup.ky(rows));
-%         meanRsqy(n,i/2) = nanmean(LateGroup.Rsqy(rows));
-%         SDRsqy(n,i/2) = nanstd(LateGroup.Rsqy(rows));
         
         %% Interaction point Z dir
         % Power
@@ -111,26 +93,7 @@ for subj = subj_array_force
         meanVz(n,i/2) = nanmean(LateGroup.meanVz(rows));
         meanPosVz(n,i/2) = nanmean(LateGroup.meanPosVz(rows));
         meanNegVz(n,i/2) = nanmean(LateGroup.meanNegVz(rows));
-        % Regression rFin to force (nan value if n.s. fit)
-%         meanMz(n,i/2) = nanmean(LateGroup.mz(rows));
-%         SDMz(n,i/2) = nanstd(LateGroup.mz(rows));
-%         meanBz(n,i/2) = nanmean(LateGroup.bz(rows));
-%         SDBz(n,i/2) = nanstd(LateGroup.bz(rows));
-%         meanKz(n,i/2) = nanmean(LateGroup.kz(rows));
-%         SDKz(n,i/2) = nanstd(LateGroup.kz(rows));
-%         meanRsqz(n,i/2) = nanmean(LateGroup.Rsqz(rows));
-%         SDRsqz(n,i/2) = nanstd(LateGroup.Rsqz(rows));
-        
-        %% Calculate percent of trials where param was sig.
-%         if i == 4 % Assist Beam condition only
-%             mxIPsig(n) = length(find(~isnan(LateGroup.mx(rows))))/length(LateGroup.mx(rows));
-%             bxIPsig(n) = length(find(~isnan(LateGroup.bx(rows))))/length(LateGroup.bx(rows));
-%             kxIPsig(n) = length(find(~isnan(LateGroup.kx(rows))))/length(LateGroup.kx(rows));
-%             mzIPsig(n) = length(find(~isnan(LateGroup.mz(rows))))/length(LateGroup.mz(rows));
-%             bzIPsig(n) = length(find(~isnan(LateGroup.bz(rows))))/length(LateGroup.bz(rows));
-%             kzIPsig(n) = length(find(~isnan(LateGroup.kz(rows))))/length(LateGroup.kz(rows));
-%         end
-        
+
         %% Clavicle x/ML dir
         % Velocity CLAV marker
         meanVxPOB(n,i/2) = nanmean(LateGroup.meanVx_clav(rows));
@@ -172,270 +135,74 @@ end
 
 save LateStats_groupMeans_force
 
-%% Plot mean pos and neg work done by assistant at interaction pt
-% All forces are resolved into lab coordinate frame, tension is positive and in neg z dir w.r.t.
-% Assistant's finger/arm. If force x disp. is negative in lab CS, positive
-% work done by assistant.
-
-% subplot(2,2,1)
-% boxplot(PosWorkAssist); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Peak pos. work Asst. arm len (J)'); xtickangle(45)
-% 
-% subplot(2,2,2)
-% boxplot(NegWorkAssist); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Peak neg. work Asst. arm len (J)'); xtickangle(45)
-
-%% Plot total positive and negative work done for condition - biased by time length of trial
-% plotind = 0;
-% 
-% plotind = plotind + 1;
-% subplot(2,4,plotind)
-% boxplot(PosWorkIntPtTot); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Energy added Int Pt Vec (J)'); xtickangle(45)
-% 
-% plotind = plotind + 1;
-% subplot(2,4,plotind)
-% boxplot(PosWorkIntPtX); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Energy added Int Pt ML (J)'); xtickangle(45)
-% 
-% plotind = plotind + 1;
-% subplot(2,4,plotind)
-% boxplot(PosWorkIntPtY); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Energy added Int Pt AP (J)'); xtickangle(45)
-% 
-% plotind = plotind + 1;
-% subplot(2,4,plotind)
-% boxplot(PosWorkIntPtZ); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Energy added Int Pt Vert (J)'); xtickangle(45)
-% 
-% plotind = plotind + 1;
-% subplot(2,4,plotind)
-% boxplot(abs(NegWorkIntPtTot)); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Energy absorbed Int Pt Vec (J)'); xtickangle(45)
-% 
-% plotind = plotind + 1;
-% subplot(2,4,plotind)
-% boxplot(abs(NegWorkIntPtX)); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Energy absorbed Int Pt ML (J)'); xtickangle(45)
-% 
-% plotind = plotind + 1;
-% subplot(2,4,plotind)
-% boxplot(abs(NegWorkIntPtY)); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Energy absorbed Int Pt AP (J)'); xtickangle(45)
-% 
-% plotind = plotind + 1;
-% subplot(2,4,plotind)
-% boxplot(abs(NegWorkIntPtZ)); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-% ylabel('Energy absorbed Int Pt Vert (J)'); xtickangle(45)
-
-%% Indiv subj plots showing mean and SD of Rsq values for regression fits in each dir
-for i = 1:length(subj_array_force)
-    
-    x = [ones(length(subj_array_force),1) 2*ones(length(subj_array_force),1)]';
-    
-    subplot(1,3,1), hold on;
-    errorbar(x,meanRsqx',SDRsqx'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('Rsq x'); xtickangle(45)
-    
-    subplot(1,3,2), hold on;
-    errorbar(x,meanRsqy',SDRsqy'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('Rsq y'); xtickangle(45)
-    
-    subplot(1,3,3), hold on;
-    errorbar(x,meanRsqz',SDRsqz'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('Rsq z'); xtickangle(45)
-end
-
-%% Indiv subj plots showing mean and SD of regression coeff values in each dir
-figure;
-for i = 1:length(subj_array_force)
-    
-    x = [ones(length(subj_array_force),1) 2*ones(length(subj_array_force),1)]';
-    
-    % mass
-    subplot(3,3,1), hold on;
-    errorbar(x,meanMx',SDMx'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('M x'); xtickangle(45)
-    
-    subplot(3,3,2), hold on;
-    errorbar(x,meanMy',SDMy'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('M y'); xtickangle(45)
-    
-    subplot(3,3,3), hold on;
-    errorbar(x,meanMz',SDMz'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('M z'); xtickangle(45)
-    
-    % damping
-    subplot(3,3,4), hold on;
-    errorbar(x,meanBx',SDBx'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('B x'); xtickangle(45)
-    
-    subplot(3,3,5), hold on;
-    errorbar(x,meanBy',SDBy'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('B y'); xtickangle(45)
-    
-    subplot(3,3,6), hold on;
-    errorbar(x,meanBz',SDBz'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('B z'); xtickangle(45)
-    
-    % stiffness
-    subplot(3,3,7), hold on;
-    errorbar(x,meanKx',SDKx'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('K x'); xtickangle(45)
-    
-    subplot(3,3,8), hold on;
-    errorbar(x,meanKy',SDKy'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('K y'); xtickangle(45)
-    
-    subplot(3,3,9), hold on;
-    errorbar(x,meanKz',SDKz'); 
-    xlim([0.5 2.5]); set(gca,'xtick',1:2);
-    set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-    ylabel('K z'); xtickangle(45)
-end
-
- %% Plot regression IP R^2 and coeff values ML dir Partner Beam only
-% plotind = 0;
-% 
-% plotind = plotind + 1;
-% subplot(4,1,plotind)
-% boxplot(meanRsqx(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-% ylabel('Rsq'); title('ML direction');
-% 
-% plotind = plotind + 1;
-% subplot(4,1,plotind)
-% boxplot(meanMx(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-% ylabel('Mass (kg)'); 
-% 
-% plotind = plotind + 1;
-% subplot(4,1,plotind)
-% boxplot(meanBx(:,2)); set(gca,'xticklabel','All partnerships');box off; set(gca,'tickdir','out');
-% ylabel('Damping (Ns/m)'); 
-% 
-% plotind = plotind + 1;
-% subplot(4,1,plotind)
-% boxplot(meanKx(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-% ylabel('Stiffness (N/m)'); 
-% 
-% %% Plot regression IP R^2 and coeff values Vert dir Partner Beam only
-% plotind = 0;
-% 
-% plotind = plotind + 1;
-% subplot(4,1,plotind)
-% boxplot(meanRsqz(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-% ylabel('R^2'); title('Vertical direction');
-% 
-% plotind = plotind + 1;
-% subplot(4,1,plotind)
-% boxplot(meanMz(:,2)); hline(0,'k--'),
-% set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-% ylabel('m (kg)'); 
-% 
-% plotind = plotind + 1;
-% subplot(4,1,plotind)
-% boxplot(meanBz(:,2)), hline(0,'k--'); 
-% set(gca,'xticklabel','All partnerships');box off; set(gca,'tickdir','out');
-% ylabel('b (Ns/m)'); 
-% 
-% plotind = plotind + 1;
-% subplot(4,1,plotind)
-% boxplot(meanKz(:,2)),hline(0,'k--');
-% set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-% ylabel('k (N/m)'); 
-
-%% mean percent Partner Beam trials where m, b, k sig. ML dir IP
-
-plotind = 0;
-xlab = 'All partnerships';
-numrows = 3; numcols = 1;
-
-plotind = plotind + 1;
-subplot(numrows,numcols,plotind)
-boxplot(mxIPsig*100),ylabel('% trials m sig')
-box off; ylim([0 100]);
-set(gca,'xticklabel',xlab,'tickdir','out');
-
-plotind = plotind + 1;
-subplot(numrows,numcols,plotind)
-boxplot(bxIPsig*100),ylabel('% trials b sig')
-box off; ylim([0 100]);
-set(gca,'xticklabel',xlab,'tickdir','out');
-
-plotind = plotind + 1;
-subplot(numrows,numcols,plotind)
-boxplot(kxIPsig*100),ylabel('% trials k sig')
-box off; ylim([0 100]);
-set(gca,'xticklabel',xlab,'tickdir','out');
-
-%% Plot regression POB R^2 and coeff values ML dir Partner Beam only
+%% Plot regression POB R^2 and coeff values ea dir Partner Beam
 plotind = 0;
 
+% ML dir
 plotind = plotind + 1;
-subplot(1,4,plotind)
+subplot(3,4,plotind)
 boxplot(meanRsqxPOB(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
 ylabel('Rsq'); 
 title('Fit POB clav ML direction');
 
 plotind = plotind + 1;
-subplot(1,4,plotind)
+subplot(3,4,plotind)
 boxplot(meanMxPOB(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-ylabel('Mass (kg)'); 
+ylabel('Mass (kg)'); hline(0,'k');
 
 plotind = plotind + 1;
-subplot(1,4,plotind)
+subplot(3,4,plotind)
 boxplot(meanBxPOB(:,2)); set(gca,'xticklabel','All partnerships');box off; set(gca,'tickdir','out');
-ylabel('Damping (Ns/m)'); 
+ylabel('Damping (Ns/m)'); hline(0,'k');
 
 plotind = plotind + 1;
-subplot(1,4,plotind)
+subplot(3,4,plotind)
 boxplot(meanKxPOB(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-ylabel('Stiffness (N/m)'); 
+ylabel('Stiffness (N/m)'); hline(0,'k');
 
-%% Plot regression POB R^2 and coeff values Vert dir Partner Beam only
-plotind = 0;
+% AP dir
+plotind = plotind + 1;
+subplot(3,4,plotind)
+boxplot(meanRsqyPOB(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
+ylabel('Rsq'); 
+title('Fit POB clav AP direction');
 
 plotind = plotind + 1;
-subplot(1,4,plotind)
+subplot(3,4,plotind)
+boxplot(meanMyPOB(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
+ylabel('Mass (kg)'); hline(0,'k');
+
+plotind = plotind + 1;
+subplot(3,4,plotind)
+boxplot(meanByPOB(:,2)); set(gca,'xticklabel','All partnerships');box off; set(gca,'tickdir','out');
+ylabel('Damping (Ns/m)'); hline(0,'k');
+
+plotind = plotind + 1;
+subplot(3,4,plotind)
+boxplot(meanKyPOB(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
+ylabel('Stiffness (N/m)'); hline(0,'k');
+
+% Vert dir
+plotind = plotind + 1;
+subplot(3,4,plotind)
 boxplot(meanRsqzPOB(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
 ylabel('Rsq');
 title('Fit POB clav vert direction');
 
 plotind = plotind + 1;
-subplot(1,4,plotind)
+subplot(3,4,plotind)
 boxplot(meanMzPOB(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-ylabel('Mass (kg)'); 
+ylabel('Mass (kg)'); hline(0,'k');
 
 plotind = plotind + 1;
-subplot(1,4,plotind)
+subplot(3,4,plotind)
 boxplot(meanBzPOB(:,2)); set(gca,'xticklabel','All partnerships');box off; set(gca,'tickdir','out');
-ylabel('Damping (Ns/m)'); 
+ylabel('Damping (Ns/m)'); hline(0,'k');
 
 plotind = plotind + 1;
-subplot(1,4,plotind)
+subplot(3,4,plotind)
 boxplot(meanKzPOB(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
-ylabel('Stiffness (N/m)'); 
+ylabel('Stiffness (N/m)'); hline(0,'k');
 
 %% mean percent Partner Beam trials where m, b, k sig. ML dir
 
@@ -494,12 +261,15 @@ hline(1,'r-','1N');
 box off; set(gca,'tickdir','out');
 ylabel('Mean Fmag Vert (N)');
 
+%%
+close all;
 % Compare Overground vs. Beam
 plotind = 0;
 
 plotind = plotind + 1;
 subplot(1,3,plotind)
-boxplot(meanFx); sigstar({[1,2]}); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+boxplot(meanFx); %sigstar({[1,2]}); 
+set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
 ylabel('Mean Fmag ML (N)'); xtickangle(45)
 
 plotind = plotind + 1;
@@ -512,13 +282,22 @@ subplot(1,3,plotind)
 boxplot(meanFz); sigstar({[1,2]}); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
 ylabel('Mean Fmag Vert (N)'); xtickangle(45)
 
+%%
+close all
 % Different color per subject
 plotind = 0;
 
 plotind = plotind + 1;
 subplot(1,3,plotind)
-plot(meanFx'); sigstar({[1,2]}); set(gca,'xticklabel',conds([2 4]),'xtick',1:2); box off; set(gca,'tickdir','out');
-ylabel('Mean Fmag ML (N)'); xlim([0.5 2.5]);
+plot(meanFx'); %sigstar({[1,2]}); 
+set(gca,'xticklabel',conds([2 4]),'xtick',1:2); box off; set(gca,'tickdir','out');
+ylabel('Mean Fmag ML (N)'); xtickangle(45), xlim([0.5 2.5]);
+i = 0;
+for subj = subj_array_force
+    i = i + 1;
+    legNames{i} = sprintf('HHI%i',subj);
+end
+legend(legNames);
 
 plotind = plotind + 1;
 subplot(1,3,plotind)
@@ -529,40 +308,6 @@ plotind = plotind + 1;
 subplot(1,3,plotind)
 plot(meanFz'); sigstar({[1,2]}); set(gca,'xticklabel',conds([2 4]),'xtick',1:2); box off; set(gca,'tickdir','out');
 ylabel('Mean Fmag Vert (N)'); xtickangle(45), xlim([0.5 2.5]);
-
-%% Plot mean pos and neg force
-close all;
-plotind = 0;
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanPosFx); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Pos F ML (N)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanPosFy); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Pos F AP (N)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanPosFz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Pos F Vert (N)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanNegFx); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Neg F ML (N)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanNegFy); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Neg F AP (N)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanNegFz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Neg F Vert (N)'); xtickangle(45)
 
 %% Plot mean abs IP vel per trial to compare with force mag's and power mag's
 close all;
@@ -584,41 +329,7 @@ subplot(1,3,plotind)
 boxplot(meanVz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
 ylabel('Vel Mag Vert. (m/s)'); xtickangle(45)
 
-%% Plot mean pos and neg IP vel per trial
-figure;
-plotind = 0;
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanPosVx); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Pos Vel ML (m/s)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanPosVy); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Pos Vel AP (m/s)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanPosVz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Pos Vel Vert (m/s)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanNegVx); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Neg Vel ML (m/s)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanNegVy); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Neg Vel AP (m/s)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(2,3,plotind)
-boxplot(meanNegVz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-ylabel('Mean Neg Vel Vert (m/s)'); xtickangle(45)
-
-%% Plot abs, pos, and neg IP power 
+%% Plot abs, pos, and neg IP power overground vs. beam
 plotind = 0;
 numcols = 3; numrows = 1;
 
@@ -645,11 +356,12 @@ numcols = 3; numrows = 1;
 % set(gca,'xticklabel','Assist Beam'); box off; set(gca,'tickdir','out');
 % ylabel('Power Mag Vert (W)'); 
 
-% Abs power (signif power flow)
+%% Abs power (signif power flow)
 
+plotind = 0;
 plotind = plotind + 1;
 subplot(numrows,numcols,plotind)
-boxplot(powerAbsIntPtX); sigstar({[1,2]}); 
+boxplot(powerAbsIntPtX); %sigstar({[1,2]}); 
 set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
 ylabel('Power ML (W)'); xtickangle(45)
 
@@ -665,15 +377,15 @@ subplot(numrows,numcols,plotind)
 boxplot(powerAbsIntPtZ); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
 ylabel('Power Vert (W)'); xtickangle(45)
 
-% Compare positive vs. negative power for Assist Beam in each dir
+%% Compare positive vs. negative power for Assist Beam in each dir (motor vs. brake)
 figure
 plotind = 0;
 
-xlab{1} = 'Added';
-xlab{2} = 'Absorbed';
+xlab{1} = 'Motor';
+xlab{2} = 'Brake';
 plotind = plotind + 1;
 subplot(numrows,numcols,plotind)
-boxplot([powerPosIntPtX(:,2) powerNegIntPtX(:,2)]); 
+boxplot([powerPosIntPtX(:,2) abs(powerNegIntPtX(:,2))]); 
 % mPower = mean([powerPosIntPtX(:,2) powerNegIntPtX(:,2)]);
 % sdPower = std([powerPosIntPtX(:,2) powerNegIntPtX(:,2)]);
 % errorbar(1:2,mPower,sdPower)
@@ -729,27 +441,27 @@ ylabel('Power Vert (W)'); xtickangle(45)
 % ylabel('Mean power absorb Int Pt Vert (W)'); xtickangle(45)
 
 %% Plot mean abs POB vel per trial to compare with force mag's and power mag's
-close all;
-plotind = 0;
-
-plotind = plotind + 1;
-subplot(1,3,plotind)
-boxplot(meanVxPOB); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-sigstar({[1 2]});
-ylabel('Vel Mag ML (m/s)'); xtickangle(45)
-
-plotind = plotind + 1;
-subplot(1,3,plotind)
-boxplot(meanVyPOB); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-sigstar({[1 2]});
-ylabel('Vel Mag AP (m/s)'); xtickangle(45)
-title('POB Clav');
-
-plotind = plotind + 1;
-subplot(1,3,plotind)
-boxplot(meanVzPOB); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
-sigstar({[1 2]});
-ylabel('Vel Mag Vert. (m/s)'); xtickangle(45)
+% close all;
+% plotind = 0;
+% 
+% plotind = plotind + 1;
+% subplot(1,3,plotind)
+% boxplot(meanVxPOB); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% sigstar({[1 2]});
+% ylabel('Vel Mag ML (m/s)'); xtickangle(45)
+% 
+% plotind = plotind + 1;
+% subplot(1,3,plotind)
+% boxplot(meanVyPOB); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% sigstar({[1 2]});
+% ylabel('Vel Mag AP (m/s)'); xtickangle(45)
+% title('POB Clav');
+% 
+% plotind = plotind + 1;
+% subplot(1,3,plotind)
+% boxplot(meanVzPOB); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% sigstar({[1 2]});
+% ylabel('Vel Mag Vert. (m/s)'); xtickangle(45)
 
 %% Plot abs, pos, and neg power done on POB for trial for a bunch of conditions
 % plotind = 0;
@@ -1060,4 +772,199 @@ subplot(2,3,plotind)
 boxplot(meanNegWorkIntPtZ); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
 ylabel('Mean Neg Work Vert (J)'); xtickangle(45)
 
+%% Plot mean pos and neg work done by assistant at interaction pt
+% All forces are resolved into lab coordinate frame, tension is positive and in neg z dir w.r.t.
+% Assistant's finger/arm. If force x disp. is negative in lab CS, positive
+% work done by assistant.
 
+% subplot(2,2,1)
+% boxplot(PosWorkAssist); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Peak pos. work Asst. arm len (J)'); xtickangle(45)
+% 
+% subplot(2,2,2)
+% boxplot(NegWorkAssist); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Peak neg. work Asst. arm len (J)'); xtickangle(45)
+
+%% Plot total positive and negative work done for condition - biased by time length of trial
+% plotind = 0;
+% 
+% plotind = plotind + 1;
+% subplot(2,4,plotind)
+% boxplot(PosWorkIntPtTot); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Energy added Int Pt Vec (J)'); xtickangle(45)
+% 
+% plotind = plotind + 1;
+% subplot(2,4,plotind)
+% boxplot(PosWorkIntPtX); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Energy added Int Pt ML (J)'); xtickangle(45)
+% 
+% plotind = plotind + 1;
+% subplot(2,4,plotind)
+% boxplot(PosWorkIntPtY); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Energy added Int Pt AP (J)'); xtickangle(45)
+% 
+% plotind = plotind + 1;
+% subplot(2,4,plotind)
+% boxplot(PosWorkIntPtZ); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Energy added Int Pt Vert (J)'); xtickangle(45)
+% 
+% plotind = plotind + 1;
+% subplot(2,4,plotind)
+% boxplot(abs(NegWorkIntPtTot)); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Energy absorbed Int Pt Vec (J)'); xtickangle(45)
+% 
+% plotind = plotind + 1;
+% subplot(2,4,plotind)
+% boxplot(abs(NegWorkIntPtX)); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Energy absorbed Int Pt ML (J)'); xtickangle(45)
+% 
+% plotind = plotind + 1;
+% subplot(2,4,plotind)
+% boxplot(abs(NegWorkIntPtY)); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Energy absorbed Int Pt AP (J)'); xtickangle(45)
+% 
+% plotind = plotind + 1;
+% subplot(2,4,plotind)
+% boxplot(abs(NegWorkIntPtZ)); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+% ylabel('Energy absorbed Int Pt Vert (J)'); xtickangle(45)
+
+ %% Plot regression IP R^2 and coeff values ML dir Partner Beam only
+% plotind = 0;
+% 
+% plotind = plotind + 1;
+% subplot(4,1,plotind)
+% boxplot(meanRsqx(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
+% ylabel('Rsq'); title('ML direction');
+% 
+% plotind = plotind + 1;
+% subplot(4,1,plotind)
+% boxplot(meanMx(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
+% ylabel('Mass (kg)'); 
+% 
+% plotind = plotind + 1;
+% subplot(4,1,plotind)
+% boxplot(meanBx(:,2)); set(gca,'xticklabel','All partnerships');box off; set(gca,'tickdir','out');
+% ylabel('Damping (Ns/m)'); 
+% 
+% plotind = plotind + 1;
+% subplot(4,1,plotind)
+% boxplot(meanKx(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
+% ylabel('Stiffness (N/m)'); 
+% 
+% %% Plot regression IP R^2 and coeff values Vert dir Partner Beam only
+% plotind = 0;
+% 
+% plotind = plotind + 1;
+% subplot(4,1,plotind)
+% boxplot(meanRsqz(:,2)); set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
+% ylabel('R^2'); title('Vertical direction');
+% 
+% plotind = plotind + 1;
+% subplot(4,1,plotind)
+% boxplot(meanMz(:,2)); hline(0,'k--'),
+% set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
+% ylabel('m (kg)'); 
+% 
+% plotind = plotind + 1;
+% subplot(4,1,plotind)
+% boxplot(meanBz(:,2)), hline(0,'k--'); 
+% set(gca,'xticklabel','All partnerships');box off; set(gca,'tickdir','out');
+% ylabel('b (Ns/m)'); 
+% 
+% plotind = plotind + 1;
+% subplot(4,1,plotind)
+% boxplot(meanKz(:,2)),hline(0,'k--');
+% set(gca,'xticklabel','All partnerships'); box off; set(gca,'tickdir','out');
+% ylabel('k (N/m)'); 
+
+%% mean percent Partner Beam trials where m, b, k sig. ML dir IP
+
+plotind = 0;
+xlab = 'All partnerships';
+numrows = 3; numcols = 1;
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(mxIPsig*100),ylabel('% trials m sig')
+box off; ylim([0 100]);
+set(gca,'xticklabel',xlab,'tickdir','out');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(bxIPsig*100),ylabel('% trials b sig')
+box off; ylim([0 100]);
+set(gca,'xticklabel',xlab,'tickdir','out');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(kxIPsig*100),ylabel('% trials k sig')
+box off; ylim([0 100]);
+set(gca,'xticklabel',xlab,'tickdir','out');
+
+%% Plot mean pos and neg force
+close all;
+plotind = 0;
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanPosFx); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Pos F ML (N)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanPosFy); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Pos F AP (N)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanPosFz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Pos F Vert (N)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanNegFx); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Neg F ML (N)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanNegFy); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Neg F AP (N)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanNegFz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Neg F Vert (N)'); xtickangle(45)
+
+%% Plot mean pos and neg IP vel per trial
+figure;
+plotind = 0;
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanPosVx); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Pos Vel ML (m/s)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanPosVy); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Pos Vel AP (m/s)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanPosVz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Pos Vel Vert (m/s)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanNegVx); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Neg Vel ML (m/s)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanNegVy); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Neg Vel AP (m/s)'); xtickangle(45)
+
+plotind = plotind + 1;
+subplot(2,3,plotind)
+boxplot(meanNegVz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('Mean Neg Vel Vert (m/s)'); xtickangle(45)

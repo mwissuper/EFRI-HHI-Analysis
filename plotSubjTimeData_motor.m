@@ -1,5 +1,6 @@
 % Plot time series data for an individual subject. Plot residual of force fit for
-% periods of time where power is positive. Look ML dir only.
+% periods of time where power is motor. Must negate signs when plotting
+% force and power because looking at force on POB
 clear; clc; close all;
 
 subj_array_force = [3:5 8:13];
@@ -10,8 +11,9 @@ colors(1,:) = [0.00,0.45,0.74]; % nice blue
 colors(2,:) = [0.85,0.33,0.10]; % nice red
 colors(3,:) = [0.47,0.67,0.19]; % nice green
 
-for subj = subj_array_force
+for subj = subj_array_force(end)
     filename = sprintf('HHI2017_%i.mat',subj);
+%     filename = 'HHI2017_8_FbiasAsstSolo.mat';
     load(filename);
 
     % Cycle through all trials and plot time series data for actual force,
@@ -30,8 +32,9 @@ for subj = subj_array_force
             % Find where power is positive or negative (motor or brake)
             temp.indNeg = find(TrialData(i).Results.IntPower(3:end,1) < 0); % Only look at time indices where we have acc data. This index is relative to acc data vector
            
-            % Plot power at interaction point (F x vFIN). For ML, tension
-            % is > 0
+            % Plot power at interaction point (F x vFIN). Corrected signs
+            % in mainWorkPowerAnalysisMW.m s.t. all positive power
+            % corresponds to motor in all directions
             subplot(numrows,numcols,plotind),hold on;
             plot(TrialData(i).Results.time(2:end),TrialData(i).Results.IntPower(:,1),'k-');
             temp.posPower = TrialData(i).Results.IntPower(:,1);
@@ -82,7 +85,7 @@ for subj = subj_array_force
             
             % Plot residual of model fit and highlight sections where power
             % is positive. Show value of correlation residual to power.
-            temp.resid = TrialData(i).Results.Forces(3:end,1) - m*temp.c; % Must negate sign to get Force on POB
+            temp.resid = TrialData(i).Results.Forces(3:end,1) - m*temp.c; % Must negate sign to get Force on POB and then compare to model
             % Calc corr power to F resid
             [temp.rho, temp.p] = corr(TrialData(i).Results.IntPower(2:end,1),temp.resid);
             if temp.p < 0.05
