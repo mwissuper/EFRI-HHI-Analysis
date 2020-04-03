@@ -13,7 +13,7 @@ colors(1,:) = [0.00,0.45,0.74]; % nice blue
 colors(2,:) = [0.85,0.33,0.10]; % nice red
 colors(3,:) = [0.47,0.67,0.19]; % nice green
 
-for subj = subj_array_force
+for subj = 3%subj_array_force
     filename = sprintf('HHI2017_%i.mat',subj);
     load(filename);
 
@@ -57,8 +57,8 @@ for subj = subj_array_force
             m = [TrialData(i).Results.aCLAV(:,1) TrialData(i).Results.vCLAV(2:end,1) TrialData(i).Results.CLAV(3:end,1)-TrialData(i).Results.beamMidline ones(size(TrialData(i).Results.aCLAV(:,1)))];
             plot(TrialData(i).Results.time(3:end),m*temp.c,'k');
             % Plot modeled force components 
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cx_clav(1).*TrialData(i).Results.aCLAV(:,1));
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cx_clav(2).*TrialData(i).Results.vCLAV(2:end,1));
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cx_clav(1).*TrialData(i).Results.aCLAV(:,1),'color',colors(1,:));
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cx_clav(2).*TrialData(i).Results.vCLAV(2:end,1),'color',colors(2,:));
             plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cx_clav(3).*(TrialData(i).Results.CLAV(3:end,1)-TrialData(i).Results.beamMidline),'color',colors(3,:));
             % Labels and formatting
             ylabel('Mediolateral Force (N)'); box off; set(gca,'tickdir','out');
@@ -70,9 +70,9 @@ for subj = subj_array_force
             % Plot POB Clavicle state
             plotind = plotind + numcols; 
             subplot(numrows,numcols,plotind),hold on;
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.aCLAV(:,1).*SFax)
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.vCLAV(2:end,1).*SFvx)
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.CLAV(3:end,1)-TrialData(i).Results.beamMidline);
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.aCLAV(:,1).*SFax,'color',colors(1,:))
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.vCLAV(2:end,1).*SFvx,'color',colors(2,:))
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.CLAV(3:end,1)-TrialData(i).Results.beamMidline,'color',colors(3,:));
             % Labels and formatting
             ylabel('Clav ML'); box off; set(gca,'tickdir','out');
             legend('acc','vel','disp','orientation','horizontal','location','northoutside');
@@ -109,8 +109,8 @@ for subj = subj_array_force
             m = [TrialData(i).Results.aCLAV(:,3) TrialData(i).Results.vCLAV(2:end,3) TrialData(i).Results.CLAV(3:end,3)-TrialData(i).Results.CLAV(1,3) ones(size(TrialData(i).Results.aCLAV(:,3)))];
             plot(TrialData(i).Results.time(3:end),m*temp.c,'k');
             % Plot modeled force components 
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cz_clav(1).*TrialData(i).Results.aCLAV(:,3));
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cz_clav(2).*TrialData(i).Results.vCLAV(2:end,3));
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cz_clav(1).*TrialData(i).Results.aCLAV(:,3),'color',colors(1,:));
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cz_clav(2).*TrialData(i).Results.vCLAV(2:end,3),'color',colors(2,:));
             plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cz_clav(3).*(TrialData(i).Results.CLAV(3:end,3)-TrialData(i).Results.CLAV(1,3)),'color',colors(3,:));
             % Labels and formatting
             ylabel('F Vert (N)'); box off; set(gca,'tickdir','out');
@@ -121,8 +121,8 @@ for subj = subj_array_force
             % Plot POB Clavicle state
             plotind = plotind + numcols; 
             subplot(numrows,numcols,plotind),hold on;
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.aCLAV(:,3).*SFaz)
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.vCLAV(2:end,3).*SFvz)
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.aCLAV(:,3).*SFaz,'color',colors(1,:))
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.vCLAV(2:end,3).*SFvz,'color',colors(2,:))
             plot(TrialData(i).Results.time(3:end),TrialData(i).Results.CLAV(3:end,3)-nanmean(TrialData(i).Results.CLAV(3:end,3)),'color',colors(3,:));
             % Labels and formatting
             ylabel('Clav Vert'); box off; set(gca,'tickdir','out');
