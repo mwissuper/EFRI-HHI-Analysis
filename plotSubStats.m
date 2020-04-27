@@ -4,11 +4,11 @@ clear all; clc; close all;
 
 subj_array = 3:14;
 subj_array_force = [3:5 8:13]; % HHI_01 and HHI_02 are pilots. HHI_06, _07, _14 are all missing Fx in the force data (force was unplugged)
-plotPosNeg = 0;
+plotPosNeg = 1;
 if plotPosNeg == 1
-    xlims = [-15 15];
+    xlims = [-12 12];
     numcols = 3; % Look all dir's force
-    numrows = length(subj_array_force);
+    numrows = 3;
 else
     xlims = [0 15];
     numcols = 3; % Only look Fvert
@@ -185,58 +185,33 @@ for subj = subj_array_force
     subjind = subjind + 1;
     rows = forces.LateGroup.Subject==subj & strcmp(forces.LateGroup.Type,conds{2});
 %     length(find(rows~=0))
-    % Force mag (unsigned)
-    Fx = forces.LateGroup.meanFx(rows); 
-    Fy = forces.LateGroup.meanFy(rows);
-    Fz = forces.LateGroup.meanFz(rows);
+    if plotPosNeg == 1
         % Combine pos and neg means into one data set for histogram
-%         Fx = [forces.LateGroup.meanPosFx(rows); forces.LateGroup.meanNegFx(rows)]; 
-%         Fy = [forces.LateGroup.meanPosFy(rows); forces.LateGroup.meanNegFy(rows)]; 
-%         Fz = [forces.LateGroup.meanPosFz(rows); forces.LateGroup.meanNegFz(rows)]; 
+        Fx = [forces.LateGroup.meanPosFx(rows); forces.LateGroup.meanNegFx(rows)]; 
+        Fy = [forces.LateGroup.meanPosFy(rows); forces.LateGroup.meanNegFy(rows)]; 
+        Fz = [forces.LateGroup.meanPosFz(rows); forces.LateGroup.meanNegFz(rows)]; 
+    else
+        % Force mag (unsigned)
+        Fx = forces.LateGroup.meanFx(rows); 
+        Fy = forces.LateGroup.meanFy(rows);
+        Fz = forces.LateGroup.meanFz(rows);
+    end
 
     %% Force histogram. Matlab's auto param's chosen to reveal shape of distribution. If comparing subj's, may need to fix bin width...
-    
-%     if plotPosNeg == 1
-%         plotind = plotind + 1;
-%         subplot(numrows,numcols,plotind)
-%         histogram(Fx,'binwidth',1,'Normalization','probability'); box off; set(gca,'tickdir','out');
-%         xlim(xlims);
-%         ylabel('Counts');
-% 
-%         if mod(plotind,numcols) == 1
-%             titlename = sprintf('HHI%i',subj); title(titlename);
-%         end
-% 
-%         % Xlabel on bottom row only
-%         if plotind == (numrows-1)*numcols + 1
-%             xlabel('Mean F ML (N)');
-%         end
-% 
-%         plotind = plotind + 1;
-%         subplot(numrows,numcols,plotind)
-%         histogram(Fy,'binwidth',1,'Normalization','probability'); box off; set(gca,'tickdir','out');
-%         xlim(xlims);
-% 
-%         % Xlabel on bottom row only
-%         if plotind == (numrows-1)*numcols + 2
-%             xlabel('Mean F AP (N)');
-%         end
-% 
-% 
-%         if plotind == 2
-%             title(conds{1});
-%         end
-%     end
-%% New code histogram
+
     % Fx
     plotind = plotind + 1;
     subplot(numrows,numcols,plotind)
     histogram(Fx,'binwidth',0.5,'Normalization','probability'); box off; set(gca,'tickdir','out');
-    xlim([0.25 4.25]); ylabel('Probability (norm cts)');
-    ylim([0 0.8]);
-    s = [859.0000  422.3333  574.6667  716.6667];
-    set(gcf,'outerposition',s);
-    xlabel('Mean Fmag ML (N)');
+    xlim(xlims); ylabel('Probability (norm cts)');
+    ylim([0 0.3]);
+%     s = [859.0000  422.3333  574.6667  716.6667];
+%     set(gcf,'outerposition',s);
+    if plotPosNeg == 1
+        xlabel('Mean mediolateral force (N)');
+    else
+        xlabel('Mean Fmag ML (N)');
+    end
     titlename = sprintf('Partnership %i',subjind); title(titlename);
 
 %     % Fz

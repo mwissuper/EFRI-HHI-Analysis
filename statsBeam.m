@@ -31,14 +31,34 @@ if P1 > 0
     [H,P0,CI,STATS] = ttest(Dist(:,1),Dist(1,2))
 end
 
-%% Plot correlation baseline balance ability (as measured by solo beam
-% distance) vs. improvement in performance (sway, beam distance, and avg
+%% Plot correlation solo balance ability (as measured by solo beam
+% distance in early trials) vs. improvement in performance (sway, beam distance, and avg
 % speed) with partner. Test correlation.
+
+% Load early period metrics and get solo condition data for distance
+% completed on beam
+
+kinem = load('HHI2017_EarlyStats_MW'); % More participants than force data
+conds = {'Solo Beam'};
+n = 0;
+for subj = subj_array
+    n = n + 1;
+    for i = 1:length(conds)
+        rows = kinem.EarlyGroup.Subject==subj & strcmp(kinem.EarlyGroup.Type,conds{i});
+        BaseDist(n,i) = nanmean(kinem.EarlyGroup.Dist(rows)); % Total distance traveled on beam
+        a = kinem.EarlyGroup.Dist(rows)
+        clear a
+    end
+end
+
+% Calculate correlations
 
 dSway = diff(StdSway')'; dDist = diff(Dist')'; dSpeed = diff(AvgSpeed')';
 
 subplot(1,3,1),plot(Dist(:,1),dSway,'x')
-[rho,p] = corr(Dist(:,1),dSway);
+% [rho,p] = corr(Dist(:,1),dSway); % Old method of characterizing baseline
+% balance ability my mean of distance completed on beam across all late
+% trials
 if p < 0.05
     c = polyfit(Dist(:,1),dSway,1);
     hold on; plot(Dist(:,1),polyval(c,Dist(:,1)),'k');
@@ -97,6 +117,9 @@ for subj = subj_array_force
         Fx(n,i) = nanmean(forces.LateGroup.meanFx(rows)); 
         Fy(n,i) = nanmean(forces.LateGroup.meanFy(rows));
         Fz(n,i) = nanmean(forces.LateGroup.meanFz(rows));
+        FxSD(n,i) = nanmean(forces.LateGroup.SDFx(rows)); 
+        FySD(n,i) = nanmean(forces.LateGroup.SDFy(rows));
+        FzSD(n,i) = nanmean(forces.LateGroup.SDFz(rows));
         
         %% IP
         % Vel mag (unsigned)
@@ -108,6 +131,9 @@ for subj = subj_array_force
         Px(n,i) = nanmean(forces.LateGroup.meanAbsPowerIntPtX(rows)); 
         Py(n,i) = nanmean(forces.LateGroup.meanAbsPowerIntPtY(rows));
         Pz(n,i) = nanmean(forces.LateGroup.meanAbsPowerIntPtZ(rows));
+        PxSD(n,i) = nanmean(forces.LateGroup.SDAbsPowerIntPtX(rows)); 
+        PySD(n,i) = nanmean(forces.LateGroup.SDAbsPowerIntPtY(rows));
+        PzSD(n,i) = nanmean(forces.LateGroup.SDAbsPowerIntPtZ(rows));
         if i == 2
             % Do only for assist beam cond. Want to compare magnitude, so
             % take abs of neg power
@@ -121,7 +147,7 @@ for subj = subj_array_force
     end
 end
 
-%% Force tests
+%% Force (mean) tests
 % Compare Assist Beam vs. Light Touch
 [px1,stat,test] = compMean(Fx(:,2),1);
 [py1,stat,test] = compMean(Fy(:,2),1);
@@ -139,6 +165,15 @@ test = {};
 [px,stat(1),test{1}] = comp2groups(Fx(:,1),Fx(:,2));
 [py,stat(2),test{2}] = comp2groups(Fy(:,1),Fy(:,2));
 [pz,stat(3),test{3}] = comp2groups(Fz(:,1),Fz(:,2));
+
+[stat' [px;py;pz]]
+test
+
+%% Force SD tests compare Assist Ground vs. Assist Beam
+clear stat; test = {};
+[px,stat(1),test{1}] = comp2groups(FxSD(:,1),FxSD(:,2));
+[py,stat(2),test{2}] = comp2groups(FySD(:,1),FySD(:,2));
+[pz,stat(3),test{3}] = comp2groups(FzSD(:,1),FzSD(:,2));
 
 [stat' [px;py;pz]]
 test
@@ -165,7 +200,7 @@ test = {};
 [stat' [px;py;pz]]
 test
 
-%% Power tests
+%% Mean power tests
 clc;
 % Compare Assist Beam vs. normal walking (or other small-power) thresh
 
@@ -195,6 +230,15 @@ test = {};
 [px,stat(1),test{1}] = comp2groups(PposX,PnegX);
 [py,stat(2),test{2}] = comp2groups(PposY,PnegY);
 [pz,stat(3),test{3}] = comp2groups(PposZ,PnegZ);
+[stat' [px;py;pz]]
+test
+
+%% Power SD tests compare Assist Ground vs. Assist Beam
+clear stat; test = {};
+[px,stat(1),test{1}] = comp2groups(PxSD(:,1),PxSD(:,2));
+[py,stat(2),test{2}] = comp2groups(PySD(:,1),PySD(:,2));
+[pz,stat(3),test{3}] = comp2groups(PzSD(:,1),PzSD(:,2));
+
 [stat' [px;py;pz]]
 test
 

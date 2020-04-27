@@ -34,7 +34,7 @@ end
 
 %% Run analysis for work, power, sway per participant
 
-for subj = 3%subj_array
+for subj = subj_array(2:end)
     file = sprintf('HHI2017_%i.mat',subj);
 
     % Reorganize the data and calculate work and power - for an individual trial

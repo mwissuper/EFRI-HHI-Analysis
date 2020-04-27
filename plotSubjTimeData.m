@@ -20,7 +20,7 @@ s2 = [5 1 11 8.5]; % paper size
 numcols = 2; % 1 for ML dir, 2 for Vert dir
 indSubj = 0;
 
-for subj = 3%subj_array
+for subj = 8%subj_array
     subj = subj
     indSubj = indSubj + 1;
     filename = sprintf('HHI2017_%i.mat',subj); % Load the individual subject's time series data
@@ -32,9 +32,9 @@ for subj = 3%subj_array
         numrows = 2; % 2 performance metrics based on time series data
     end
 
-    for i = 1:length(TrialData)
+    for i = 11%1:length(TrialData)
        
-        if strcmp(TrialData(i).Info.Condition,conds{1}) || strcmp(TrialData(i).Info.Condition,conds{2}) 
+%         if strcmp(TrialData(i).Info.Condition,conds{1}) || strcmp(TrialData(i).Info.Condition,conds{2}) 
             figure;          
             
             if strcmp(TrialData(i).Info.Condition,conds{1})
@@ -45,7 +45,12 @@ for subj = 3%subj_array
             
             %% ML dir
             
-            % Abs force
+            % Clavicle position
+            plot(TrialData(i).Results.time,TrialData(i).Results.CLAV(:,1)-TrialData(i).Results.beamMidline);
+            ylabel('Clavicle ML position (m)'); box off; set(gca,'tickdir','out');
+            hline(0,'k:','Beam midline');
+            
+            %% Abs force
             plotind = 1; 
             subplot(numrows,numcols,plotind)
             plot(TrialData(i).Results.time,abs(TrialData(i).Results.Forces(:,1)));
@@ -107,7 +112,7 @@ for subj = 3%subj_array
             
             % Plot xcorr clavicle disp. to force
             temp.F = TrialData(i).Results.Forces(1,3:end)-TrialData(i).Results.cx(4);
-            temp.disp = TrialData(i).Results.vCLAV(1,3:end));
+            temp.disp = TrialData(i).Results.vCLAV(1,3:end);
             temp.lag = TrialData(i).Results.lagX;
             if temp.lag < 0
                 timeShift = TrialData(i).Results.time(3:end+temp.lag);
@@ -243,7 +248,7 @@ for subj = 3%subj_array
             export_fig(gcf,pdfname,'-pdf','-append')
             close all;
    
-        end
+%         end
     end
 end
 

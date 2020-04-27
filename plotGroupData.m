@@ -17,6 +17,7 @@ for subj = subj_array_force
         %% Interaction point X dir
         % Power
         powerAbsIntPtX(n,i/2) = nanmean(LateGroup.meanAbsPowerIntPtX(rows));
+        SDpowerAbsIntPtX(n,i/2) = nanmean(LateGroup.SDAbsPowerIntPtX(rows));
         powerPosIntPtX(n,i/2) = nanmean(LateGroup.meanPosPowerIntPtX(rows));
         powerNegIntPtX(n,i/2) = nanmean(LateGroup.meanNegPowerIntPtX(rows));
 %         % Sum of work for trial (biased by trial length)
@@ -29,6 +30,7 @@ for subj = subj_array_force
 %         meanNegWorkIntPtX(n,i/2) = nanmean(LateGroup.meanNegWorkIntPtX(rows));
         % Mean force vs. time for trial
         meanFx(n,i/2) = nanmean(LateGroup.meanFx(rows));
+        SDFx(n,i/2) = nanmean(LateGroup.SDFx(rows));
         meanPosFx(n,i/2) = nanmean(LateGroup.meanPosFx(rows));
         meanNegFx(n,i/2) = nanmean(LateGroup.meanNegFx(rows));
         % SD force vs. time for trial
@@ -41,6 +43,17 @@ for subj = subj_array_force
         meanNegVx(n,i/2) = nanmean(LateGroup.meanNegVx(rows));
         % corr power to Fresid
         meanrPowerFresX(n,i/2) = nanmean(LateGroup.rPowerFresX(rows));
+        % xcorr IP to POB Clav
+        meanxcorrFIPClavX(n,i/2) = nanmean(LateGroup.xcorrFIPClavX(rows));
+        meanxcorrFIPvClavX(n,i/2) = nanmean(LateGroup.xcorrFIPvClavX(rows));
+        meanxcorrvIPvClavX(n,i/2) = nanmean(LateGroup.xcorrvIPvClavX(rows));
+        % xcorr lag IP to POB Clav
+        meanLagFIPClavX(n,i/2) = nanmean(LateGroup.lagFIPClavX(rows));
+        meanLagFIPvClavX(n,i/2) = nanmean(LateGroup.lagFIPvClavX(rows));
+        meanLagvIPvClavX(n,i/2) = nanmean(LateGroup.lagvIPvClavX(rows));
+        % POB armLen (not force but related to xcorr above)
+        meanArmPOBX(n,i/2) = nanmean(LateGroup.meanArmPOBX(rows));
+        SDarmPOBX(n,i/2) = nanmean(LateGroup.SDarmPOBX(rows));
         
         %% Interaction point Y dir
         % Power
@@ -234,6 +247,53 @@ boxplot(meanrPowerFresX(:,2)); set(gca,'xticklabel','All partnerships'); box off
 ylabel('r');
 title('Correlation between ML power and F model residual');
 
+%% Plot xcorr lag different IP to POB Clav signals for ML dir
+xtlab{1} = conds{2};
+xtlab{2} = conds{4};
+
+subplot(2,3,1)
+boxplot(meanLagFIPClavX); set(gca,'xticklabel',xtlab),hold on, hline(0,'k--');
+box off; set(gca,'tickdir','out');
+ylabel('lag at max xcorr (s)');
+title('ML force and Clav pos');
+
+subplot(2,3,2)
+boxplot(meanLagFIPvClavX); set(gca,'xticklabel',xtlab),hold on, hline(0,'k--');
+box off; set(gca,'tickdir','out');
+title('ML force and Clav vel');
+
+subplot(2,3,3)
+boxplot(meanLagvIPvClavX); set(gca,'xticklabel',xtlab),hold on, hline(0,'k--');
+box off; set(gca,'tickdir','out');
+title('IP and Clav vels');
+
+subplot(2,3,4)
+boxplot(meanxcorrFIPClavX); set(gca,'xticklabel',xtlab),hold on, hline(0,'k--');
+box off; set(gca,'tickdir','out');
+ylabel('max xcorr');
+
+subplot(2,3,5)
+boxplot(meanxcorrFIPvClavX); set(gca,'xticklabel',xtlab),hold on, hline(0,'k--');
+box off; set(gca,'tickdir','out');
+
+subplot(2,3,6)
+boxplot(meanxcorrvIPvClavX); set(gca,'xticklabel',xtlab),hold on, hline(0,'k--');
+box off; set(gca,'tickdir','out');
+
+%% Plot POB arm len to check xcorr results
+xtlab{1} = conds{2};
+xtlab{2} = conds{4};
+
+subplot(1,2,1)
+boxplot(meanArmPOBX),set(gca,'xticklabel',xtlab),hold on
+box off; set(gca,'tickdir','out'),title('Distance IP to POB Clav (m)');
+ylabel('mean (m)');
+
+subplot(1,2,2)
+boxplot(SDarmPOBX),set(gca,'xticklabel',xtlab),hold on
+box off; set(gca,'tickdir','out')
+ylabel('SD (m)');
+
 %% Plot mean abs force per dir
 
 close all;
@@ -261,9 +321,8 @@ hline(1,'r-','1N');
 box off; set(gca,'tickdir','out');
 ylabel('Mean Fmag Vert (N)');
 
-%%
+%% Plot mean abs force compare Overground vs. Beam
 close all;
-% Compare Overground vs. Beam
 plotind = 0;
 
 plotind = plotind + 1;
@@ -281,6 +340,14 @@ plotind = plotind + 1;
 subplot(1,3,plotind)
 boxplot(meanFz); sigstar({[1,2]}); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
 ylabel('Mean Fmag Vert (N)'); xtickangle(45)
+
+%% Plot SD abs force compare Overground vs. Beam
+close all;
+plotind = 0;
+
+boxplot(SDFx); sigstar({[1,2]}); 
+set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
+ylabel('SD Fmag ML (N)'); xtickangle(45)
 
 %%
 close all
@@ -329,7 +396,7 @@ subplot(1,3,plotind)
 boxplot(meanVz); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
 ylabel('Vel Mag Vert. (m/s)'); xtickangle(45)
 
-%% Plot abs, pos, and neg IP power overground vs. beam
+%% Plot mean abs, pos, and neg IP power overground vs. beam
 plotind = 0;
 numcols = 3; numrows = 1;
 
@@ -356,7 +423,7 @@ numcols = 3; numrows = 1;
 % set(gca,'xticklabel','Assist Beam'); box off; set(gca,'tickdir','out');
 % ylabel('Power Mag Vert (W)'); 
 
-%% Abs power (signif power flow)
+%% Mean abs power (signif power flow)
 
 plotind = 0;
 plotind = plotind + 1;
@@ -376,6 +443,12 @@ plotind = plotind + 1;
 subplot(numrows,numcols,plotind)
 boxplot(powerAbsIntPtZ); set(gca,'xticklabel',conds([2 4])); box off; set(gca,'tickdir','out');
 ylabel('Power Vert (W)'); xtickangle(45)
+
+%% Power mag variability
+
+boxplot(SDpowerAbsIntPtX);
+set(gca,'xticklabel',{'Partnered Ground','Partnered Beam'}); box off; set(gca,'tickdir','out');
+ylabel('ML Power Variability (W)'); xtickangle(45)
 
 %% Compare positive vs. negative power for Assist Beam in each dir (motor vs. brake)
 figure
@@ -517,7 +590,7 @@ ylabel('Power Vert (W)'); xtickangle(45)
 % set(gca,'xticklabel',xlab); box off; set(gca,'tickdir','out');
 % ylabel('Power Vert (W)'); xtickangle(45)
 
-%% Concatenate performance metric data: do for all subj's and cond's
+%% Concatenate performance metric data
 
 clear; close all; clc;
 load HHI2017_LateStats_MW.mat;
@@ -525,7 +598,8 @@ load HHI2017_LateStats_MW.mat;
 n = 0;
 subj_array = 3:14;
 subj_array_force = [3:5 8:13]; % HHI_01 and HHI_02 are pilots. HHI_06, _07, _14 are all missing Fx in the force data (force was unplugged)
-conds_perf = {'Solo Beam','Partner Beam'};
+% conds_perf = {'Solo Beam','Assist Beam'};
+conds_perf = {'Solo Ground','Assist Ground','Solo Beam','Assist Beam'};
 
 n = 0;
 for subj = subj_array % HHI12 had close to mean sway, good example subj

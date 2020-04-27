@@ -11,7 +11,7 @@ colors(1,:) = [0.00,0.45,0.74]; % nice blue
 colors(2,:) = [0.85,0.33,0.10]; % nice red
 colors(3,:) = [0.47,0.67,0.19]; % nice green
 
-for subj = subj_array_force(end)
+for subj = 4%subj_array_force
     filename = sprintf('HHI2017_%i.mat',subj);
 %     filename = 'HHI2017_8_FbiasAsstSolo.mat';
     load(filename);
