@@ -1,4 +1,4 @@
-% Run all stats tests
+% Run all stats tests. Use all data (early and late trials)
 
 clear all; close all; clc;
 
@@ -7,142 +7,160 @@ subj_array_force = [3:5 8:13]; % HHI_01 and HHI_02 are pilots. HHI_06, _07, _14 
 
 %% Performance metrics
 
-kinem = load('HHI2017_LateStats_MW'); % More participants than force data
+kinem = load('HHI2017_Stats_MW'); % More participants than force data
 conds = {'Solo Beam','Assist Beam','Solo Ground','Assist Ground'};
 n = 0;
 for subj = subj_array
     n = n + 1;
     for i = 1:length(conds)
-        rows = kinem.LateGroup.Subject==subj & strcmp(kinem.LateGroup.Type,conds{i});
-        StdSway(n,i) = nanmean(kinem.LateGroup.StdSway(rows)); % SD Clav sway
-        Dist(n,i) = nanmean(kinem.LateGroup.Dist(rows)); % Total distance traveled on beam
-        AvgSpeed(n,i) = nanmean(kinem.LateGroup.AvgSpeed(rows)); % Average speed of walking on beam
+        rows = kinem.GroupStats.Subject==subj & strcmp(kinem.GroupStats.Type,conds{i});
+        StdSway(n,i) = nanmean(kinem.GroupStats.StdSway(rows)); % SD Clav sway
+        if i == 1 || i == 2
+            Dist(n,i) = nanmean(kinem.GroupStats.Dist(rows)); % Total distance traveled on beam
+            AvgSpeed(n,i) = nanmean(kinem.GroupStats.AvgSpeed(rows)); % Average speed of walking on beam
+        end
     end
 end
 
 %% Stats tests to compare Solo Beam vs. Assist Beam
 
-[p,stat,test] = comp2groups(StdSway(:,1),StdSway(:,2))
-[p,stat,test] = comp2groups(AvgSpeed(:,1),AvgSpeed(:,2))
-
 % Compare value vs. mean (full beam length for all assisted trials)
 [Hl,P1] = lillietest(Dist(:,1)); % First test if distrib is normal so know which test to use next
 if P1 > 0
-    [H,P0,CI,STATS] = ttest(Dist(:,1),Dist(1,2))
+    [H,p1,CI,stats] = ttest(Dist(:,1),3.65);
+    test1 = 't-test';
 end
 
+[p(1),stat(1),test{1}] = comp2groups(AvgSpeed(:,1),AvgSpeed(:,2));
+[p(2),stat(2),test{2}] = comp2groups(StdSway(:,1),StdSway(:,2));
+
+[stats.tstat p1]
+[stat' p']
+test
+
+%% Stats tests to compare Solo Ground vs. Assist Ground
+clc
+% Compare value vs. mean (full beam length for all assisted trials)
+[p,stat,test] = comp2groups(StdSway(:,3),StdSway(:,4));
+
 %% Plot correlation solo balance ability (as measured by solo beam
-% distance in early trials) vs. improvement in performance (sway, beam distance, and avg
+% distance avg all trials) vs. improvement in performance (sway, beam distance, and avg
 % speed) with partner. Test correlation.
 
-% Load early period metrics and get solo condition data for distance
-% completed on beam
-
-kinem = load('HHI2017_EarlyStats_MW'); % More participants than force data
+kinem = load('HHI2017_Stats_MW'); % More participants than force data
 conds = {'Solo Beam'};
 n = 0;
 for subj = subj_array
     n = n + 1;
     for i = 1:length(conds)
-        rows = kinem.EarlyGroup.Subject==subj & strcmp(kinem.EarlyGroup.Type,conds{i});
-        BaseDist(n,i) = nanmean(kinem.EarlyGroup.Dist(rows)); % Total distance traveled on beam
-        a = kinem.EarlyGroup.Dist(rows)
+        rows = kinem.GroupStats.Subject==subj & strcmp(kinem.GroupStats.Type,conds{i});
+        BaseDist(n,i) = nanmean(kinem.GroupStats.Dist(rows)); % Total distance traveled on beam
+        a = kinem.GroupStats.Dist(rows);
         clear a
     end
 end
 
 % Calculate correlations
 
-dSway = diff(StdSway')'; dDist = diff(Dist')'; dSpeed = diff(AvgSpeed')';
+dSway = diff(StdSway')'; dSpeed = diff(AvgSpeed')';
 
-subplot(1,3,1),plot(Dist(:,1),dSway,'x')
-% [rho,p] = corr(Dist(:,1),dSway); % Old method of characterizing baseline
-% balance ability my mean of distance completed on beam across all late
+% Characterizing baseline
+% balance ability by mean of distance completed on beam across all late
 % trials
-if p < 0.05
-    c = polyfit(Dist(:,1),dSway,1);
-    hold on; plot(Dist(:,1),polyval(c,Dist(:,1)),'k');
-    titlename = sprintf('rho = %.2f, p = %.2f',rho,p);
-else
-    titlename = sprintf('p = %.2f',p);
-end
-xlabel('Solo Beam distance (m)')
-ylabel('Change in sway (m)');
-title(titlename);
 
-subplot(1,3,2),plot(Dist(:,1),dDist,'x')
-[rho,p] = corr(Dist(:,1),dDist);
-if p < 0.05
-    c = polyfit(Dist(:,1),dDist,1);
-    hold on; plot(Dist(:,1),polyval(c,Dist(:,1)),'k');
-    titlename = sprintf('rho = %.2f, p = %.2f',rho,p);
-else
-    titlename = sprintf('p = %.2f',p);
-end
-xlabel('Solo Beam distance (m)')
-ylabel('Change in beam distance (m)');
-title(titlename);
-
-subplot(1,3,3),plot(Dist(:,1),dSpeed,'x')
-[rho,p] = corr(Dist(:,1),dSpeed);
-if p < 0.05
-    c = polyfit(Dist(:,1),dSpeed,1);
-    hold on; plot(Dist(:,1),polyval(c,Dist(:,1)),'k');
-    titlename = sprintf('rho = %.2f, p = %.2f',rho,p);
-else
-    titlename = sprintf('p = %.2f',p);
-end
-xlabel('Solo Beam distance (m)')
-ylabel('Change in avg speed (m/s)');
-title(titlename);
+[rho(1),p(1)] = corr(Dist(:,1),dSpeed);
+[rho(2),p(2)] = corr(Dist(:,1),dSway);
 
 %% Stats tests to compare solo ground vs. assist ground
 
 [p,stat,test] = comp2groups(StdSway(:,3),StdSway(:,4))
 [p,stat,test] = comp2groups(AvgSpeed(:,3),AvgSpeed(:,4))
 
-%% Force and power compare beam vs. ground
+%% Calc means force, power, and arm length metrics compare beam vs. ground
 
-forces = load('HHI2017_LateStats_force_MW');
+forces = load('HHI2017_Stats_force_MW');
 conds = {'Assist Ground','Assist Beam'};
-
+kx = []; bx = []; PposXarray = []; PnegXarray = [];
 % Concatenate data
 n = 0;
 for subj = subj_array_force
     n = n + 1;
     for i = 1:length(conds)
-        rows = forces.LateGroup.Subject==subj & strcmp(forces.LateGroup.Type,conds{i});
+        rows = forces.GroupStats.Subject==subj & strcmp(forces.GroupStats.Type,conds{i});
         
         % Force mag (unsigned)
-        Fx(n,i) = nanmean(forces.LateGroup.meanFx(rows)); 
-        Fy(n,i) = nanmean(forces.LateGroup.meanFy(rows));
-        Fz(n,i) = nanmean(forces.LateGroup.meanFz(rows));
-        FxSD(n,i) = nanmean(forces.LateGroup.SDFx(rows)); 
-        FySD(n,i) = nanmean(forces.LateGroup.SDFy(rows));
-        FzSD(n,i) = nanmean(forces.LateGroup.SDFz(rows));
+        Fx(n,i) = nanmean(forces.GroupStats.meanFx(rows)); 
+        Fy(n,i) = nanmean(forces.GroupStats.meanFy(rows));
+        Fz(n,i) = nanmean(forces.GroupStats.meanFz(rows));
+        FxSD(n,i) = nanmean(forces.GroupStats.SDFx(rows)); 
+        FySD(n,i) = nanmean(forces.GroupStats.SDFy(rows));
+        FzSD(n,i) = nanmean(forces.GroupStats.SDFz(rows));
         
         %% IP
         % Vel mag (unsigned)
-        Vx(n,i) = nanmean(forces.LateGroup.meanVx(rows)); 
-        Vy(n,i) = nanmean(forces.LateGroup.meanVy(rows));
-        Vz(n,i) = nanmean(forces.LateGroup.meanVz(rows));
+        Vx(n,i) = nanmean(forces.GroupStats.meanVx(rows)); 
+        Vy(n,i) = nanmean(forces.GroupStats.meanVy(rows));
+        Vz(n,i) = nanmean(forces.GroupStats.meanVz(rows));
         
         % Power mag (unsigned)
-        Px(n,i) = nanmean(forces.LateGroup.meanAbsPowerIntPtX(rows)); 
-        Py(n,i) = nanmean(forces.LateGroup.meanAbsPowerIntPtY(rows));
-        Pz(n,i) = nanmean(forces.LateGroup.meanAbsPowerIntPtZ(rows));
-        PxSD(n,i) = nanmean(forces.LateGroup.SDAbsPowerIntPtX(rows)); 
-        PySD(n,i) = nanmean(forces.LateGroup.SDAbsPowerIntPtY(rows));
-        PzSD(n,i) = nanmean(forces.LateGroup.SDAbsPowerIntPtZ(rows));
+        Px(n,i) = nanmean(forces.GroupStats.meanAbsPowerIntPtX(rows)); 
+        Py(n,i) = nanmean(forces.GroupStats.meanAbsPowerIntPtY(rows));
+        Pz(n,i) = nanmean(forces.GroupStats.meanAbsPowerIntPtZ(rows));
+        PxSD(n,i) = nanmean(forces.GroupStats.SDAbsPowerIntPtX(rows)); 
+        PySD(n,i) = nanmean(forces.GroupStats.SDAbsPowerIntPtY(rows));
+        PzSD(n,i) = nanmean(forces.GroupStats.SDAbsPowerIntPtZ(rows));
+        
+        % effective arm length
+        armPOBx(n,i) = nanmean(forces.GroupStats.meanArmPOBX(rows)); 
+        SDarmPOBx(n,i) = nanmean(forces.GroupStats.SDarmPOBX(rows)); 
+        
         if i == 2
             % Do only for assist beam cond. Want to compare magnitude, so
-            % take abs of neg power
-            PposX(n) = nanmean(forces.LateGroup.meanPosPowerIntPtX(rows)); 
-            PnegX(n) = nanmean(abs(forces.LateGroup.meanNegPowerIntPtX(rows))); 
-            PposY(n) = nanmean(forces.LateGroup.meanPosPowerIntPtY(rows)); 
-            PnegY(n) = nanmean(abs(forces.LateGroup.meanNegPowerIntPtY(rows)));
-            PposZ(n) = nanmean(forces.LateGroup.meanPosPowerIntPtZ(rows)); 
-            PnegZ(n) = nanmean(abs(forces.LateGroup.meanNegPowerIntPtZ(rows)));
+            % take abs of neg force/power
+            FposX(n) = nanmean(forces.GroupStats.meanPosFx(rows)); 
+            FnegX(n) = nanmean(abs(forces.GroupStats.meanNegFx(rows)));
+            FposY(n) = nanmean(forces.GroupStats.meanPosFy(rows)); 
+            FnegY(n) = nanmean(abs(forces.GroupStats.meanNegFy(rows)));
+            FposZ(n) = nanmean(forces.GroupStats.meanPosFz(rows)); 
+            FnegZ(n) = nanmean(abs(forces.GroupStats.meanNegFz(rows)));
+            
+            PposX(n) = nanmean(forces.GroupStats.meanPosPowerIntPtX(rows)); 
+            PnegX(n) = nanmean(abs(forces.GroupStats.meanNegPowerIntPtX(rows))); 
+            PposY(n) = nanmean(forces.GroupStats.meanPosPowerIntPtY(rows)); 
+            PnegY(n) = nanmean(abs(forces.GroupStats.meanNegPowerIntPtY(rows)));
+            PposZ(n) = nanmean(forces.GroupStats.meanPosPowerIntPtZ(rows)); 
+            PnegZ(n) = nanmean(abs(forces.GroupStats.meanNegPowerIntPtZ(rows)));
+            
+            % Percent of time doing strategy
+            perPpos(n) = nanmean(forces.GroupStats.perPposFposX(rows) + forces.GroupStats.perPposFnegX(rows));
+            perFpos(n) = nanmean(forces.GroupStats.perPposFposX(rows) + forces.GroupStats.perPnegFposX(rows));
+            perPneg(n) = nanmean(forces.GroupStats.perPnegFposX(rows) + forces.GroupStats.perPnegFnegX(rows));
+            perFneg(n) = nanmean(forces.GroupStats.perPposFnegX(rows) + forces.GroupStats.perPnegFnegX(rows)) ;
+            
+            % Concat stiffness and damping values, don't take mean across
+            % trials! Do same for pos and neg P
+            kx = [kx; forces.GroupStats.kx_torso(rows)];
+            bx = [bx; forces.GroupStats.bx_torso(rows)];
+            PposXarray = [PposXarray; forces.GroupStats.meanPosPowerIntPtX(rows)];
+            PnegXarray = [PnegXarray; forces.GroupStats.meanNegPowerIntPtX(rows)];
+            
+            % Concat lag F to torso state
+            lagFIPTorsoX(n) = nanmean(forces.GroupStats.lagFIPTorsoX(rows));
+            lagFIPvTorsoX(n) = nanmean(forces.GroupStats.lagFIPvTorsoX(rows));
+        end
+        
+        %% POB torso
+        % Power mag (unsigned)
+        Px_POB(n,i) = nanmean(forces.GroupStats.meanAbsPowerPOBX(rows)); 
+        SDPx_POB(n,i) = nanmean(forces.GroupStats.SDAbsPowerPOBX(rows)); 
+        if i == 2
+            PposX_POB(n) = nanmean(forces.GroupStats.meanPosPowerPOBX(rows)); 
+            PnegX_POB(n) = nanmean(abs(forces.GroupStats.meanNegPowerPOBX(rows))); 
+             % Percent of time doing strategy
+            perPpos_POB(n) = nanmean(forces.GroupStats.POBperPposFposX(rows) + forces.GroupStats.POBperPposFnegX(rows));
+            perFpos_POB(n) = nanmean(forces.GroupStats.POBperPposFposX(rows) + forces.GroupStats.POBperPnegFposX(rows));
+            perPneg_POB(n) = nanmean(forces.GroupStats.POBperPnegFposX(rows) + forces.GroupStats.POBperPnegFnegX(rows));
+            perFneg_POB(n) = nanmean(forces.GroupStats.POBperPposFnegX(rows) + forces.GroupStats.POBperPnegFnegX(rows)) ;   
         end
     end
 end
@@ -169,6 +187,48 @@ test = {};
 [stat' [px;py;pz]]
 test
 
+clear stat 
+test = {};
+% For Assist Beam, compare pos vs. neg force
+[px,stat(1),test{1}] = comp2groups(FposX,FnegX);
+[py,stat(2),test{2}] = comp2groups(FposY,FnegY);
+[pz,stat(3),test{3}] = comp2groups(FposZ,FnegZ);
+[stat' [px;py;pz]]
+test
+
+%% Compare force means for better vs. worse halves (based on solo dist
+% metric). 1) divide the two groups of better vs. worse based on all 12
+% subj's in kinem data. 2) divide two groups based on 9 subj's with F data
+% and disregard subj that was in the middle (HHI 10)
+% clc
+% W = [9 5 3 11 10 12]; B = [13 8 4]; % Not enough elements in B to run lillietest
+% for i = 1:length(W)
+%     indW(i) = find(subj_array_force==W(i),1,'first');
+% end
+% for i = 1:length(B)
+%     indB(i) = find(subj_array_force==B(i),1,'first');
+% end
+% [p1,stat1,test1] = comp2groups(Fx(indW,2),Fx(indB,2))
+%
+clear W B indW indB p stat test
+[c,ia,ib] = intersect(subj_array,subj_array_force);
+soloDistF = Dist(ia,1);
+[soloDistFSort,iSort] = sort(soloDistF);
+W = subj_array_force(iSort(1:4)); B = subj_array_force(iSort(6:end)); 
+
+[p,stat,test] = comp2groups(Fx(iSort(1:4),2),Fx(iSort(6:end),2))
+
+% Plot for above test
+plot(1:2,[Fx(iSort(1:4),2) Fx(iSort(6:end),2)],'kx')
+xlim([0.5 2.5]),set(gca,'xtick',1:2); 
+xlab{1} = 'Worse'; xlab{2} = 'Better'; set(gca,'xticklabel',xlab)
+xlabel('Solo balance (beam distance)'); ylabel('Mean F mag (N)');
+box off,set(gca,'tickdir','out')
+
+%% Test correlation better/worse solo balance vs mean 
+[c,ia,ib] = intersect(subj_array,subj_array_force);
+[r, p] = corr(Dist(ia),Fx(:,2));
+
 %% Force SD tests compare Assist Ground vs. Assist Beam
 clear stat; test = {};
 [px,stat(1),test{1}] = comp2groups(FxSD(:,1),FxSD(:,2));
@@ -180,8 +240,9 @@ test
 
 %% Calculate abs and percent change assist ground vs assist beam
 
-% deltaFx = mean(Fx(:,2))-mean(Fx(:,1))
-deltaFz = mean(Fz(:,2))-mean(Fz(:,1))
+deltaFx = mean(Fx(:,2))-mean(Fx(:,1))
+deltaSDFx = mean(FxSD(:,2))-mean(FxSD(:,1))
+% deltaFz = mean(Fz(:,2))-mean(Fz(:,1))
 
 % deltaFxPer = (mean(Fx(:,2))-mean(Fx(:,1)))/mean(Fx(:,1))
 % deltaFzPer = (mean(Fz(:,2))-mean(Fz(:,1)))/mean(Fz(:,1))
@@ -200,7 +261,7 @@ test = {};
 [stat' [px;py;pz]]
 test
 
-%% Mean power tests
+%% Mean power tests - IP
 clc;
 % Compare Assist Beam vs. normal walking (or other small-power) thresh
 
@@ -256,3 +317,83 @@ dPyBeam = mean(PnegY)-mean(PposY)
 
 dPzBeam = mean(PnegZ)-mean(PposZ)
 
+%% Test percent time of trials spent in each strategy
+
+clear stat p; test = {};
+[p(1),stat(1),test{1}] = comp2groups(perFpos,perFneg);
+[p(2),stat(2),test{2}] = comp2groups(perPpos,perPneg);
+
+[stat' p']
+test
+
+%% Power tests - POB torso
+clc;
+% Compare Assist Beam vs. normal walking 
+clear stat text p
+test = {};
+
+% Compare Assist Ground vs. Assist Beam per direction
+% Stats tests compare 2 paired samples
+text(1,:) = 'Mean POB Px       ';
+text(2,:) = 'SD POB Px         ';
+text(3,:) = 'Pos Neg POB Fx    ';
+text(4,:) = 'Per Pos Neg POB Px';
+[p(1),stat(1),test{1}] = comp2groups(Px_POB(:,1),Px_POB(:,2));
+[p(2),stat(2),test{2}] = comp2groups(SDPx_POB(:,1),SDPx_POB(:,2));
+% For Assist Beam, compare pos vs. neg power
+[p(3),stat(3),test{3}] = comp2groups(PposX_POB,PnegX_POB);
+[p(4),stat(4),test{4}] = comp2groups(perPpos_POB,perPneg_POB);
+t = table(text,test',stat',p');
+
+%% Correlation between metrics of balance assistance and sway variability improvement - what is helping balance?
+% see tests in plotGroupData with plots
+%% Test effective POB arm length x dir
+
+clear stat p; test = {};
+[p(1),stat(1),test{1}] = comp2groups(armPOBx(:,1),armPOBx(:,2));
+[p(2),stat(2),test{2}] = comp2groups(SDarmPOBx(:,1),SDarmPOBx(:,2));
+
+[stat' p']
+test
+
+%% Correlation kx, bx and PosX and PnegPos using all trials b/c fits varied so much trial to trial
+% remove all nan values before do corr
+clear r p
+indk = find(isnan(kx)==0);
+indb = find(isnan(bx)==0);
+[r(1),p(1)] = corr(kx(indk),PposXarray(indk));
+[r(2),p(2)] = corr(kx(indk),-PnegXarray(indk));
+[r(3),p(3)] = corr(bx(indb),PposXarray(indb)); % damper can only contribute to energy dissipation
+
+[p' r']
+% Plot for above corr
+subplot(1,3,1),plot(kx(indk),PposXarray(indk),'kx')
+xlabel('Stiffness (N/m)'),ylabel('Braking power (W)');
+box off,set(gca,'tickdir','out');
+
+subplot(1,3,2),plot(kx(indk),-PnegXarray(indk),'kx'),xlabel('Stiffness (N/m)'), hold on
+c = polyfit(kx(indk),-PnegXarray(indk),1); plot(kx(indk),polyval(c,kx(indk)),'k');
+ylabel('Motor power (W)');
+box off,set(gca,'tickdir','out'),titlename = sprintf('rho = %.2f',r(2));
+title(titlename);
+
+subplot(1,3,3),plot(bx(indb),PposXarray(indb),'kx'),xlabel('Damping (N/(m/s))')
+ylabel('Braking power (W)');
+box off,set(gca,'tickdir','out')
+
+%% Test if lags between F and torso state signif
+
+clear stat p; test = {};
+% Compare value vs. zero
+[Hl,P1] = lillietest(lagFIPTorsoX); % First test if distrib is normal so know which test to use next
+if P1 > 0
+    [H,p,CI,stats] = ttest(lagFIPTorsoX,0);
+    test = 't-test';
+end
+
+% Compare value vs. zero
+[Hl,P1] = lillietest(lagFIPvTorsoX); % First test if distrib is normal so know which test to use next
+if P1 > 0
+    [H,p,CI,stats] = ttest(lagFIPvTorsoX,0);
+    test = 't-test';
+end

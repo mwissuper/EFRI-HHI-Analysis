@@ -3,6 +3,9 @@
 % directions. However, need to negate force in all directions when plotting
 % force on POB.
 
+% Use this code to plot example subject data for power = force * vel
+% Fit F to torso state: HHI08 t15 and HHI
+% Fit F to IP state: HHI11 t23 and HHI10 t2
 clear; clc; %close all;
 
 subj_array_force = [3:5 8:13];
@@ -13,7 +16,7 @@ colors(1,:) = [0.00,0.45,0.74]; % nice blue
 colors(2,:) = [0.85,0.33,0.10]; % nice red
 colors(3,:) = [0.47,0.67,0.19]; % nice green
 
-for subj = 8%subj_array_force
+for subj = 11%subj_array_force
     filename = sprintf('HHI2017_%i.mat',subj);
     load(filename);
 
@@ -22,7 +25,7 @@ for subj = 8%subj_array_force
 
     %% ML/x dir L col
 
-    for i = 15%1:length(TrialData)
+    for i = 23%1:length(TrialData)
        
         if strcmp(TrialData(i).Info.Condition,'Assist Beam') %strcmp(TrialData(i).Info.Condition,'Solo Ground') %|| strcmp(TrialData(i).Info.Condition,'Assist Ground') 
 %             figure;
@@ -32,72 +35,48 @@ for subj = 8%subj_array_force
             plotind = 1; 
             
             % Plot POB Torso disp (sway)
-            plotind = plotind + numcols; 
             subplot(numrows,numcols,plotind),hold on;
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.torso(3:end,1)-TrialData(i).Results.beamMidline,'color',colors(3,:));
+            plot(TrialData(i).Results.time,TrialData(i).Results.torso(:,1)-TrialData(i).Results.beamMidline,'k');
             % Labels and formatting
-            ylabel('xb (m)'); box off; set(gca,'tickdir','out')
+            ylabel('xb (m)'); box off; set(gca,'tickdir','out'),hline(0,'k--','beam midline');
+            titlename = sprintf('HHI%i %s %s',subj,TrialData(i).Info.Condition,TrialData(i).Info.Trial);
+            title(titlename);
             
-            % Plot POB Torso vel
+%             % Plot POB Torso vel
+%             plotind = plotind + numcols; 
+%             subplot(numrows,numcols,plotind),hold on;
+%             plot(TrialData(i).Results.time(3:end),TrialData(i).Results.vTorso(2:end,1),'color',colors(2,:))
+%             hline(0,'k--');
+%             % Labels and formatting
+%             ylabel('xbdot (m/s)'); box off; set(gca,'tickdir','out');
+%             
+            
+            % Plot actual force
             plotind = plotind + numcols; 
-            subplot(numrows,numcols,plotind),hold on;
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.vTorso(2:end,1),'color',colors(2,:))
+            subplot(numrows,numcols,plotind)
+            clear temp;
+            temp.c = TrialData(i).Results.cx_torso;
+            temp.c(isnan(temp.c)) = 0;
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.Forces(3:end,1)-temp.c(4),'k-'),hold on;
             % Labels and formatting
-            ylabel('xbdot (m/s)'); box off; set(gca,'tickdir','out');
+            ylabel('IP Force (N)'); box off; set(gca,'tickdir','out');
+            xlabel('Time (s)');
             
             % Plot IP vel
             plotind = plotind + numcols; 
             subplot(numrows,numcols,plotind),hold on;
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.vTorso(2:end,1),'color',colors(2,:))
+            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.IntPtVel(2:end,1),'k')
+            hline(0,'k--');
             % Labels and formatting
-            ylabel('xbdot (m/s)'); box off; set(gca,'tickdir','out');
-
-%             % Plot power at interaction point (F x vFIN). 
-%             subplot(numrows,numcols,plotind),hold on;
-%             plot(TrialData(i).Results.time(2:end),TrialData(i).Results.IntPower(:,1));
-%             hline(0,'k');
-%             % Labels and formatting
-%             ylabel('Int. Pt. Power ML (W)'); box off; set(gca,'tickdir','out');
-%             titlename = sprintf('HHI%i %s %s',subj,TrialData(i).Info.Condition,TrialData(i).Info.Trial);
-%             title(titlename);
-%             
-%             % Calculate scaling factors for acc and vel based on CLAV
-%             temp = TrialData(i).Results.CLAV(3:end,1)-TrialData(i).Results.CLAV(1,1);
-%             SFax = max(abs(temp))/max(abs(TrialData(i).Results.aCLAV(:,1)));
-%             SFvx = max(abs(temp))/max(abs(TrialData(i).Results.vCLAV(2:end,1)));
+            ylabel('IP velocity (m/s)'); box off; set(gca,'tickdir','out');
             
-            % Plot actual force
-            
-            %, modeled force, and components of clav model
-            % scaled by regression coeff's. Must negate sign on Force
-            % values since fitted to Force on POB
-%             plotind = plotind + numcols; 
-            subplot(numrows,numcols,plotind)
-%             plotind = plotind + numcols; 
-            clear temp;
-            temp.c = TrialData(i).Results.cx_torso;
-            temp.c(isnan(temp.c)) = 0;
-            plot(TrialData(i).Results.time(3:end),TrialData(i).Results.Forces(3:end,1)-temp.c(4),'k-','color',0.75.*[1 1 1],'linewidth',2),hold on;
-%             m = [TrialData(i).Results.aTorso(:,1) TrialData(i).Results.vTorso(2:end,1) TrialData(i).Results.torso(3:end,1)-TrialData(i).Results.beamMidline];
-%             plot(TrialData(i).Results.time(3:end),m*temp.c(1:3),'k');
-%             % Plot modeled force components 
-%             plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cx_torso(1).*TrialData(i).Results.aTorso(:,1),'color',colors(1,:));
-%             plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cx_torso(2).*TrialData(i).Results.vTorso(2:end,1),'color',colors(2,:));
-%             plot(TrialData(i).Results.time(3:end),TrialData(i).Results.cx_torso(3).*(TrialData(i).Results.torso(3:end,1)-TrialData(i).Results.beamMidline),'color',colors(3,:));
+            % Plot power at interaction point (F x vFIN). 
+            plotind = plotind + numcols; 
+            subplot(numrows,numcols,plotind),hold on;
+            plot(TrialData(i).Results.time(2:end),TrialData(i).Results.IntPower(:,1),'k');
+            hline(0,'k--');
             % Labels and formatting
-            ylabel('Force (N)'); box off; set(gca,'tickdir','out');
-%             titlename = sprintf('R^2=%.2f m:%.2f b:%.2f k:%.2f',TrialData(i).Results.rsqx_torso,TrialData(i).Results.cx_torso(1),TrialData(i).Results.cx_torso(2),TrialData(i).Results.cx_torso(3));
-%             legend('F','Fmodel','Fmass','Fdamper','Fspring','orientation','horizontal','location','northoutside');
-            xlabel('Time (s)');
-%             title(titlename);
-            
-%             % Plot POB Torso acc
-%             plotind = plotind + numcols; 
-%             subplot(numrows,numcols,plotind),hold on;
-%             plot(TrialData(i).Results.time(3:end),TrialData(i).Results.aTorso(:,1),'color',colors(1,:))
-%             % Labels and formatting
-%             ylabel('xbddot (m/s^2)'); box off; set(gca,'tickdir','out');
-           
+            ylabel('IP Power (W)'); box off; set(gca,'tickdir','out');             
                    
             %% Vert dir
             
