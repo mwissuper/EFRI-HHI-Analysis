@@ -88,7 +88,7 @@ for subj = subj_array_force
     for i = 1:length(conds)
         rows = forces.GroupStats.Subject==subj & strcmp(forces.GroupStats.Type,conds{i});
         
-        % Force mag (unsigned)
+        % Force (signed)
         Fx(n,i) = nanmean(forces.GroupStats.meanFx(rows)); 
         Fy(n,i) = nanmean(forces.GroupStats.meanFy(rows));
         Fz(n,i) = nanmean(forces.GroupStats.meanFz(rows));
@@ -99,16 +99,17 @@ for subj = subj_array_force
         %% IP
         % Vel mag (unsigned)
         Vx(n,i) = nanmean(forces.GroupStats.meanVx(rows)); 
+        SDVx(n,i) = nanmean(forces.GroupStats.SDVx(rows)); 
         Vy(n,i) = nanmean(forces.GroupStats.meanVy(rows));
         Vz(n,i) = nanmean(forces.GroupStats.meanVz(rows));
         
-        % Power mag (unsigned)
-        Px(n,i) = nanmean(forces.GroupStats.meanAbsPowerIntPtX(rows)); 
-        Py(n,i) = nanmean(forces.GroupStats.meanAbsPowerIntPtY(rows));
-        Pz(n,i) = nanmean(forces.GroupStats.meanAbsPowerIntPtZ(rows));
-        PxSD(n,i) = nanmean(forces.GroupStats.SDAbsPowerIntPtX(rows)); 
-        PySD(n,i) = nanmean(forces.GroupStats.SDAbsPowerIntPtY(rows));
-        PzSD(n,i) = nanmean(forces.GroupStats.SDAbsPowerIntPtZ(rows));
+        % Power (signed)
+        Px(n,i) = nanmean(forces.GroupStats.meanIPpowerX(rows)); 
+        Py(n,i) = nanmean(forces.GroupStats.meanIPpowerY(rows));
+        Pz(n,i) = nanmean(forces.GroupStats.meanIPpowerZ(rows));
+        PxSD(n,i) = nanmean(forces.GroupStats.SDIPpowerX(rows)); 
+        PySD(n,i) = nanmean(forces.GroupStats.SDIPpowerY(rows));
+        PzSD(n,i) = nanmean(forces.GroupStats.SDIPpowerZ(rows));
         
         % effective arm length
         armPOBx(n,i) = nanmean(forces.GroupStats.meanArmPOBX(rows)); 
@@ -130,6 +131,12 @@ for subj = subj_array_force
             PnegY(n) = nanmean(abs(forces.GroupStats.meanNegPowerIntPtY(rows)));
             PposZ(n) = nanmean(forces.GroupStats.meanPosPowerIntPtZ(rows)); 
             PnegZ(n) = nanmean(abs(forces.GroupStats.meanNegPowerIntPtZ(rows)));
+            
+            % Check effect of F drift on signed power
+            meanPposFlo(n) = nanmean(forces.GroupStats.meanIPpowerPosFlo(rows));
+            meanPnegFlo(n) = nanmean(abs(forces.GroupStats.meanIPpowerNegFlo(rows)));
+            meanPposFhi(n) = nanmean(forces.GroupStats.meanIPpowerPosFhi(rows));
+            meanPnegFhi(n) = nanmean(abs(forces.GroupStats.meanIPpowerNegFhi(rows)));
             
             % Percent of time doing strategy
             perPpos(n) = nanmean(forces.GroupStats.perPposFposX(rows) + forces.GroupStats.perPposFnegX(rows));
@@ -157,25 +164,26 @@ for subj = subj_array_force
             PposX_POB(n) = nanmean(forces.GroupStats.meanPosPowerPOBX(rows)); 
             PnegX_POB(n) = nanmean(abs(forces.GroupStats.meanNegPowerPOBX(rows))); 
              % Percent of time doing strategy
-            perPpos_POB(n) = nanmean(forces.GroupStats.POBperPposFposX(rows) + forces.GroupStats.POBperPposFnegX(rows));
-            perFpos_POB(n) = nanmean(forces.GroupStats.POBperPposFposX(rows) + forces.GroupStats.POBperPnegFposX(rows));
-            perPneg_POB(n) = nanmean(forces.GroupStats.POBperPnegFposX(rows) + forces.GroupStats.POBperPnegFnegX(rows));
-            perFneg_POB(n) = nanmean(forces.GroupStats.POBperPposFnegX(rows) + forces.GroupStats.POBperPnegFnegX(rows)) ;   
+%             perPpos_POB(n) = nanmean(forces.GroupStats.POBperPposFposX(rows) + forces.GroupStats.POBperPposFnegX(rows));
+%             perFpos_POB(n) = nanmean(forces.GroupStats.POBperPposFposX(rows) + forces.GroupStats.POBperPnegFposX(rows));
+%             perPneg_POB(n) = nanmean(forces.GroupStats.POBperPnegFposX(rows) + forces.GroupStats.POBperPnegFnegX(rows));
+%             perFneg_POB(n) = nanmean(forces.GroupStats.POBperPposFnegX(rows) + forces.GroupStats.POBperPnegFnegX(rows)) ;   
         end
     end
 end
 
 %% Force (mean) tests
 % Compare Assist Beam vs. Light Touch
-[px1,stat,test] = compMean(Fx(:,2),1);
-[py1,stat,test] = compMean(Fy(:,2),1);
-[pz1,stat,test] = compMean(Fz(:,2),1);
+% [px1,stat,test] = compMean(Fx(:,2),1);
+% [py1,stat,test] = compMean(Fy(:,2),1);
+% [pz1,stat,test] = compMean(Fz(:,2),1);
 
 % % Compare Assist Ground vs. Sylos-Labini handholding walking (they reported
 % % 2-3 N, so just compare vs. 3N)
 % [px,stat,test] = compMean(Fx(:,1),3)
 % [py,stat,test] = compMean(Fy(:,1),3)
 % [pz,stat,test] = compMean(Fz(:,1),3)
+clc
 clear stat 
 test = {};
 % Compare Assist Ground vs. Assist Beam per direction
@@ -196,11 +204,14 @@ test = {};
 [stat' [px;py;pz]]
 test
 
+% Worst case scenario of drift 1.5N to reduce mean differences
+[px,stat,test] = comp2groups(FposX-1.5,FnegX+1.5)
+
 %% Compare force means for better vs. worse halves (based on solo dist
 % metric). 1) divide the two groups of better vs. worse based on all 12
 % subj's in kinem data. 2) divide two groups based on 9 subj's with F data
 % and disregard subj that was in the middle (HHI 10)
-% clc
+clc
 % W = [9 5 3 11 10 12]; B = [13 8 4]; % Not enough elements in B to run lillietest
 % for i = 1:length(W)
 %     indW(i) = find(subj_array_force==W(i),1,'first');
@@ -230,7 +241,7 @@ box off,set(gca,'tickdir','out')
 [r, p] = corr(Dist(ia),Fx(:,2));
 
 %% Force SD tests compare Assist Ground vs. Assist Beam
-clear stat; test = {};
+clear stat; test = {}; clc;
 [px,stat(1),test{1}] = comp2groups(FxSD(:,1),FxSD(:,2));
 [py,stat(2),test{2}] = comp2groups(FySD(:,1),FySD(:,2));
 [pz,stat(3),test{3}] = comp2groups(FzSD(:,1),FzSD(:,2));
@@ -255,25 +266,26 @@ test = {};
 % Compare Assist Ground vs. Assist Beam per direction
 % Stats tests compare 2 paired samples
 [px,stat(1),test{1}] = comp2groups(Vx(:,1),Vx(:,2));
-[py,stat(2),test{2}] = comp2groups(Vy(:,1),Vy(:,2));
-[pz,stat(3),test{3}] = comp2groups(Vz(:,1),Vz(:,2));
+[p2,stat(2),test{2}] = comp2groups(SDVx(:,1),SDVx(:,2));
+% [py,stat(2),test{2}] = comp2groups(Vy(:,1),Vy(:,2));
+% [pz,stat(3),test{3}] = comp2groups(Vz(:,1),Vz(:,2));
 
-[stat' [px;py;pz]]
+[stat' [px;p2]]
 test
 
 %% Mean power tests - IP
 clc;
 % Compare Assist Beam vs. normal walking (or other small-power) thresh
 
-clear stat 
-test = {};
-% Compare Assist Beam per direction vs. means for one person holding sensor
-% (HHI08 Assist Solo trials)
-[px,stat(1),test{1}] = compMean(Px(:,2),0.0256);
-[py,stat(2),test{2}] = compMean(Py(:,2),2.621);
-[pz,stat(3),test{3}] = compMean(Pz(:,2),0.2597);
-[stat' [px;py;pz]]
-test
+% clear stat 
+% test = {};
+% % Compare Assist Beam per direction vs. means for one person holding sensor
+% % (HHI08 Assist Solo trials)
+% [px,stat(1),test{1}] = compMean(Px(:,2),0.0256);
+% [py,stat(2),test{2}] = compMean(Py(:,2),2.621);
+% [pz,stat(3),test{3}] = compMean(Pz(:,2),0.2597);
+% [stat' [px;py;pz]]
+% test
 
 clear stat 
 test = {};
@@ -287,15 +299,24 @@ test
 
 clear stat 
 test = {};
-% For Assist Beam, compare pos vs. neg power
+
+%% For Assist Beam, compare pos vs. neg power
+clc; clear stat; test = {};
+
 [px,stat(1),test{1}] = comp2groups(PposX,PnegX);
 [py,stat(2),test{2}] = comp2groups(PposY,PnegY);
 [pz,stat(3),test{3}] = comp2groups(PposZ,PnegZ);
 [stat' [px;py;pz]]
 test
 
+% Check effect of F drift
+
+[plo,statlo,test] = comp2groups(meanPposFlo,meanPnegFlo)
+
+[phi,stathi,test] = comp2groups(meanPposFhi,meanPnegFhi)
+
 %% Power SD tests compare Assist Ground vs. Assist Beam
-clear stat; test = {};
+clear stat; test = {}; clc;
 [px,stat(1),test{1}] = comp2groups(PxSD(:,1),PxSD(:,2));
 [py,stat(2),test{2}] = comp2groups(PySD(:,1),PySD(:,2));
 [pz,stat(3),test{3}] = comp2groups(PzSD(:,1),PzSD(:,2));

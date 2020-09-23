@@ -20,7 +20,11 @@
 clear; close all; clc;
 
 analyze_force = 1;
-plotCheck = 0; % 1 = plot clav AP and ML pos to check distance completed on beam per trial. 2 = plot algo calc dist vs Luke's method. 3 = plot sway vs. beam midline
+plotCheck = 0; % 1 = plot clav AP and ML pos to check distance completed on beam per trial. 
+% 2 = plot algo calc dist vs Luke's method. 
+% 3 = plot sway vs. beam midline for beam-walking trials
+% 4 = plot torso ML pos and torso AP vel to check analysis window for
+% overground walking trials
 
 temp = cd;
 sourcefolder = [temp,'\Data files'];
@@ -32,7 +36,7 @@ end
 
 %% Run analysis for work, power, sway per participant
 
-for subj = 13%subj_array
+for subj = subj_array
     file = sprintf('HHI2017_%i.mat',subj);
 
     % Reorganize the data and calculate work and power - for an individual trial
@@ -63,13 +67,7 @@ for subj = 13%subj_array
         TrialData(n).Markers.POB.LTOE = temp;
     end
     TrialData = mainWorkPowerAnalysisMW(TrialData,subj,plotCheck);               % Calculates work and power transfer
-    if plotCheck == 1
-        figname = sprintf('HHI%i check time window.fig',subj);
-    elseif plotCheck == 2
-        figname = sprintf('HHI%i check dist beam.fig',subj);
-    end
-%     saveas(gcf,figname,'fig');
-%     close(gcf);
+
     % Some don't have NOTES. Check for NOTES
     for n = 1:length(TrialData)
         if ~isfield(TrialData(n).Info,'Notes')
@@ -84,7 +82,7 @@ end
 % Do only for subj's with good force data
 plotoption = 0; % Plot each component force with peaks
 GroupStats = [];
-for subj = subj_array 
+for subj = subj_array
     file = sprintf('HHI2017_%i.mat',subj) % file from current folder, not source data
     load(file); % Now use new file with processed data
     GroupStats = HHI2017GroupStats_MW(TrialData,GroupStats,subj);

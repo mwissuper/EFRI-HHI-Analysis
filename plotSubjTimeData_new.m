@@ -10,10 +10,13 @@ plotSway = 0;
 plotIPstate = 0; % plot IP pos and vel to check if marker gapfill error or other marker error. Used in power calc's
 plotFvIP = 0; % Plot IV vel and force to check signed force metrics and power metrics
 plotFmag = 0;
+plotF = 0; % signed force
+plotV = 0; % signed vel IP
 plotPmag = 0;
+plotP = 0; % signed power
 plotStrategy = 0; % Opp/amp dev/ret
-plotTorsoFit = 0; % plot without the constant term
-plotIPFit = 1; % plot without the constant term
+plotTorsoFit = 1; % plot without the constant term
+plotIPFit = 0; % plot without the constant term
 
 colors(1,:) = [0.00,0.45,0.74]; % nice blue
 colors(2,:) = [0.85,0.33,0.10]; % nice red
@@ -21,7 +24,7 @@ colors(3,:) = [0.47,0.67,0.19]; % nice green
 
 if plotSway == 1 % 3 cond's
     numrows = 5; numcols = 6;
-elseif plotIPstate == 1 || plotFvIP == 1 || plotFmag == 1 || plotPmag == 1 || plotStrategy == 1 % 2 cond's
+elseif plotIPstate == 1 || plotFvIP == 1 || plotFmag == 1 || plotPmag == 1 || plotStrategy == 1 || plotV == 1 || plotP == 1 || plotF == 1% 2 cond's
     numrows = 4; numcols = 5;
 elseif plotTorsoFit == 1 || plotIPFit == 1 % Assist Beam cond only
     numrows = 4; numcols = 3;
@@ -32,7 +35,7 @@ end
 
 subjind = 0;
 temp = [];
-for subj = 13%subj_array
+for subj = 3% subj_array
     clear Fx Fy Fz
     subjind = subjind + 1;
     filename = sprintf('HHI2017_%i.mat',subj);
@@ -49,7 +52,7 @@ for subj = 13%subj_array
     end
     beamMidline = nanmean(temp);
     for i = 1:length(TrialData)
-        if ~strcmp(TrialData(i).Info.Condition,'Assist Solo') & ~strcmp(TrialData(i).Info.Condition,'FH') & ~strcmp(TrialData(i).Info.Condition,'AP') & ~strcmp(TrialData(i).Info.Condition,'POB')  % disregard these trials
+        if ~strcmp(TrialData(i).Info.Condition,'Assist Solo') & ~strcmp(TrialData(i).Info.Condition,'FH') & ~strcmp(TrialData(i).Info.Condition,'AP') & ~strcmp(TrialData(i).Info.Condition,'POB') & ~strcmp(TrialData(i).Info.Condition,'Force Handle')  % disregard these trials
             if strcmp(TrialData(i).Info.Condition,'Solo Beam') || strcmp(TrialData(i).Info.Condition,'Solo Ground')
                 clav = (TrialData(i).Markers.CLAV-TrialData(i).Markers.CLAV(TrialData(i).Results.startIdx,:))/1000;
             else
@@ -163,14 +166,37 @@ for subj = 13%subj_array
                     ylabel('Force (N)')
                 end
                 xlabel('Time (s)');
-            elseif plotPmag == 1 && ~strcmp(TrialData(i).Info.Condition,'Solo Beam') && ~strcmp(TrialData(i).Info.Condition,'Solo Ground')
+            elseif plotF == 1 && ~strcmp(TrialData(i).Info.Condition,'Solo Beam') && ~strcmp(TrialData(i).Info.Condition,'Solo Ground')
                 plotind = plotind + 1;
                 subplot(numrows,numcols,plotind)
-                plot(tAnalysis(2:end),abs(TrialData(i).Results.IntPower(:,1)));
-                hline(nanmean(abs(TrialData(i).Results.IntPower(:,1))),'k--');
+                plot(tAnalysis,TrialData(i).Results.Forces(:,1));
+                hline(nanmean(TrialData(i).Results.Forces(:,1)),'k--');
+                xlabel('Time (s)'),ylabel('Force (N)');
+                if plotind == 1
+                    titlename = sprintf('HHI%i %s %s',subj,TrialData(i).Info.Trial,TrialData(i).Info.Condition);
+                else
+                    titlename = sprintf('%s %s',TrialData(i).Info.Trial,TrialData(i).Info.Condition);
+                end
+                title(titlename);
+            elseif plotV == 1 && ~strcmp(TrialData(i).Info.Condition,'Solo Beam') && ~strcmp(TrialData(i).Info.Condition,'Solo Ground')
+                plotind = plotind + 1;
+                subplot(numrows,numcols,plotind)
+                plot(tAnalysis(2:end),TrialData(i).Results.IntPtVel(:,1));
+                xlabel('Time (s)'),ylabel('Lateral IP vel (m/s)');
+                if plotind == 1
+                    titlename = sprintf('HHI%i %s %s',subj,TrialData(i).Info.Trial,TrialData(i).Info.Condition);
+                else
+                    titlename = sprintf('%s %s',TrialData(i).Info.Trial,TrialData(i).Info.Condition);
+                end
+                title(titlename);
+            elseif plotP == 1 && ~strcmp(TrialData(i).Info.Condition,'Solo Beam') && ~strcmp(TrialData(i).Info.Condition,'Solo Ground')
+                plotind = plotind + 1;
+                subplot(numrows,numcols,plotind)
+                plot(tAnalysis(2:end),TrialData(i).Results.IntPower(:,1));
+                hline(nanmean(TrialData(i).Results.IntPower(:,1)),'k--');
                 xlabel('Time (s)'),ylabel('Power (W)');
     %                 if subj == 10
-                    ylim([0 4]);
+%                     ylim([0 4]);
     %                 end
                 if plotind == 1
                     titlename = sprintf('HHI%i %s %s',subj,TrialData(i).Info.Trial,TrialData(i).Info.Condition);

@@ -19,7 +19,7 @@ colors(3,:) = [0.47,0.67,0.19]; % nice green
 plotIP = 1; % regress to IP state
 
 %%
-for subj = 11%subj_array_force
+for subj = subj_array_force(1)
     filename = sprintf('HHI2017_%i.mat',subj);
     load(filename);
 
@@ -28,7 +28,7 @@ for subj = 11%subj_array_force
 
     %% ML/x dir L col
 
-    for i = 23%1:length(TrialData)
+    for i = 1:length(TrialData)
        
         if strcmp(TrialData(i).Info.Condition,'Assist Beam') %strcmp(TrialData(i).Info.Condition,'Solo Ground') %|| strcmp(TrialData(i).Info.Condition,'Assist Ground') 
 %             figure;

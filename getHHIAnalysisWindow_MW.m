@@ -1,4 +1,4 @@
-function [start_idx,stop_idx,beamHt] = getHHIAnalysisWindow_MW(Markers,vLHEEZfilt,beam,torsoY)
+function [start_idx,stop_idx,beamHt] = getHHIAnalysisWindow_MW(Markers,vLHEEZfilt,beam,vTorsoY)
 %% GETHHIANALYSISWINDOW: Start and Stop indices for analyzing HHI data
 %
 %   [start,stop] = getHHIAnalysisWindow(Markers,max_distance) takes a
@@ -81,9 +81,11 @@ if beam == 1
     % plot(iTroughs(1)+min([stop1 stop2])-1,-troughs,'go') % plot when foot stepped onto floor
     % ylabel('Vertical pos (mm)');
 else % no beam
-    stop_idx = find(torsoY > beamLen, 1, 'first');
+    % stop_idx = find(torsoY > beamLen, 1, 'first'); % This method captures long period of standing after finished walking because the start is late enough that the beam length is rarely reached in overground walking conditions
+    vTorsoY_offset = [vTorsoY(2:end); nan];
+    stop_idx = find(vTorsoY_offset(start_idx:end) < 0.001 & vTorsoY(start_idx:end) > 0.001,1,'last') + start_idx - 1; % Choose arbitrary threshold for AP velocity of torso based on visual observation
     if isempty(stop_idx)
-        stop_idx = length(torsoY);
+        stop_idx = length(vTorsoY)+1;
     end
 end
 
