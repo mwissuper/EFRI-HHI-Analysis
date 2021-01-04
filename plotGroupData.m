@@ -216,9 +216,9 @@ for subj = subj_array_force
         perFpos(n,i/2) = nanmean(GroupStats.perPposFposX(rows) + GroupStats.perPnegFposX(rows));
         perFneg(n,i/2) = nanmean(GroupStats.perPposFnegX(rows) + GroupStats.perPnegFnegX(rows));
         % SD force vs. time for trial
-        SDFx(n,i/2) = nanstd(GroupStats.SDFx(rows));
-        SDPosFx(n,i/2) = nanstd(GroupStats.SDPosFx(rows));
-        SDNegFx(n,i/2) = nanstd(GroupStats.SDNegFx(rows));
+        SDFx(n,i/2) = nanmean(GroupStats.SDFx(rows));
+        SDPosFx(n,i/2) = nanmean(GroupStats.SDPosFx(rows));
+        SDNegFx(n,i/2) = nanmean(GroupStats.SDNegFx(rows));
         % Velocity R FIN marker
         meanVx(n,i/2) = nanmean(GroupStats.meanVx(rows)); % Mean abs(v)
         SDVx(n,i/2) = nanmean(GroupStats.SDVx(rows)); % Mean abs(v)
@@ -291,11 +291,17 @@ for subj = subj_array_force
         %% torso x/ML dir
         % Velocity torso marker
         meanVxPOB(n,i/2) = nanmean(GroupStats.meanVx_torso(rows));
-        % Regression rFin to force (nan value if n.s. fit)
+        % Regression beam-walker torso to force (nan value if n.s. fit)
         meanMxPOB(n,i/2) = nanmean(GroupStats.mx_torso(rows));
         meanBxPOB(n,i/2) = nanmean(GroupStats.bx_torso(rows));
         meanKxPOB(n,i/2) = nanmean(GroupStats.kx_torso(rows));
         meanRsqxPOB(n,i/2) = nanmean(GroupStats.Rsqx_torso(rows));
+        % Standardized coefficients
+        % Regression beam-walker torso to force (nan value if n.s. fit)
+        meanMxPOBst(n,i/2) = nanmean(GroupStats.mx_torso_st(rows));
+        meanBxPOBst(n,i/2) = nanmean(GroupStats.bx_torso_st(rows));
+        meanKxPOBst(n,i/2) = nanmean(GroupStats.kx_torso_st(rows));
+        meanRsqxPOBst(n,i/2) = nanmean(GroupStats.Rsqx_torso_st(rows));
         % lag
         meanMxLagPOB(n,i/2) = nanmean(GroupStats.mx_lag_torso(rows));
         meanBxLagPOB(n,i/2) = nanmean(GroupStats.bx_lag_torso(rows));
@@ -336,7 +342,7 @@ end
 save LateStats_groupMeans_force
 
 %% Plot means and SD's for IP force, vel, and power Overground vs. Beam bar plots
-figure
+% figure
 condLab{1} = 'Ground';
 condLab{2} = 'Beam';
 
@@ -375,7 +381,6 @@ subplot(2,6,4),hold on;
 bar(mean(SDVx),'linestyle','none');
 errorbar(mean(SDVx),std(SDVx),'linestyle','none','color','k');
 % boxplot(SDVx,'colors','k','symbol','o')
-sigstar({[1,2]});
 set(gca,'xticklabel',condLab,'xtick',1:2); box off; set(gca,'tickdir','out');
 title('Velocity variability'),ylabel('(m/s)'); %xtickangle(45
 xlim([0.5 2.5]);
@@ -398,7 +403,7 @@ set(gca,'xticklabel',condLab,'xtick',1:2); box off; set(gca,'tickdir','out');
 title('Power variability'),ylabel('(W)'); %xtickangle(45
 xlim([0.5 2.5]);
 
-% Scatterplots correlate metrics above to performance %%%%%%%%%%%%%%%%%%%%%
+%% Scatterplots correlate metrics above to performance %%%%%%%%%%%%%%%%%%%%%
 % IP Force vs Sway Reduction
 subplot(2,6,7),hold on
 for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
@@ -406,14 +411,14 @@ for i = 1:length(subj_array_force) % must plot one at a time to get diff color p
     indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
     plot(meanFx(i,2),SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
 end
-[r,p] = corr(meanFx(:,2),SwayVRedF)
+[r(1),p(1)] = corr(meanFx(:,2),SwayVRedF)
 %p = 6*p; % Bonferroni correction
 if p < 0.05
     c = polyfit(meanFx(:,2),SwayVRedF,1);
     plot(meanFx(:,2),polyval(c,meanFx(:,2)),'k--');
-    titlename = sprintf('Sway Red. vs. Mean Force \np = %.2f, rho = %.2f',p,r); 
+    titlename = sprintf('Sway Red. vs. Mean Force \np = %.2f, rho = %.2f',p(1),r(1)); 
 else
-    titlename = sprintf('Sway Red. vs. Mean Force \np = %.2f',p); 
+    titlename = sprintf('Sway Red. vs. Mean Force \np = %.2f',p(1)); 
 end
 title(titlename),box off;
 % ylim([0 0.08]),xlim([0 8]);
@@ -426,12 +431,12 @@ for i = 1:length(subj_array_force)
     indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
     plot(SDFx(i,2),SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
 end
-[r,p] = corr(SDFx(:,2),SwayVRedF)
+[r(2),p(2)] = corr(SDFx(:,2),SwayVRedF)
 %p = 6*p; % Bonferroni correction
 if p < 0.05
     c = polyfit(SDFx(:,2),SwayVRedF,1);
     plot(SDFx(:,2),polyval(c,SDFx(:,2)),'k--');
-    titlename = sprintf('Sway Red. vs. Force Variab. \np = %.2f, rho = %.2f',p,r);
+    titlename = sprintf('Sway Red. vs. Force Variab. \np = %.2f, rho = %.2f',p(2),r(2));
 else
     titlename = sprintf('Sway Red. vs. Force Variab. \np = %.2f',p); 
 end
@@ -519,7 +524,158 @@ title(titlename),box off;
 % ylim([0 0.08]),xlim([0 0.6]);
 xlabel('(W)');
 
-% % Power POB torso
+%% Correlations of sway to force
+
+% IP Force vs Sway
+[c,ia,ib] = intersect(subj_array,subj_array_force);
+SwayF = StdSway(ia,:);
+figure
+hold on;
+for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
+    subj = subj_array_force(i);
+    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    plot(SwayF(i,4),meanFx(i,2),'.','markersize',14,'color',colors(indC,:));
+end
+[r,p] = corr(SwayF(:,4),meanFx(:,2))
+
+if p < 0.05
+    c = polyfit(SwayF(i,4),meanFx(i,2),1);
+    plot(meanFx(:,2),polyval(c,SwayF(i,4)),'k--');
+    titlename = sprintf('Sway vs. Mean Force \np = %.2f, rho = %.2f',p,r); 
+else
+    titlename = sprintf('Sway vs. Mean Force \np = %.2f',p); 
+end
+title(titlename),box off;
+xlabel('(m)');ylabel('(N)');
+
+%% Correlations of m, b, k to sway or sway reduction
+
+subplot(1,3,1),hold on
+% Mass (m)
+for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
+    subj = subj_array_force(i);
+    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    plot(meanMxPOB(i,2),SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
+end
+[r(1),p(1)] = corr(SwayVRedF,meanMxPOB(:,2));
+%p = 6*p; % Bonferroni correction
+if p(1) < 0.05
+    c = polyfit(meanMxPOB(:,2),SwayVRedF,1);
+    plot(meanMxPOB(:,2),polyval(c,meanMxPOB(:,2)),'k--');
+    titlename = sprintf('Sway Reduction vs. Mass \np = %.2f, rho = %.2f',p(1),r(1)); 
+else
+    titlename = sprintf('Sway Reduction vs. Mass \np = %.2f',p(1)); 
+end
+title(titlename),box off;
+% ylim([0 0.08]),xlim([0 8]);
+ylabel('(m)');xlabel('Mass (kg)')%,ylim([0 8])
+
+subplot(1,3,2),hold on
+% Damping (b)
+for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
+    subj = subj_array_force(i);
+    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    plot(meanBxPOB(i,2),SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
+end
+[r(2),p(2)] = corr(SwayVRedF,meanBxPOB(:,2));
+%p = 6*p; % Bonferroni correction
+if p(2) < 0.05
+    c = polyfit(meanBxPOB(:,2),SwayVRedF,1);
+    plot(meanBxPOB(:,2),polyval(c,meanBxPOB(:,2)),'k--');
+    titlename = sprintf('Sway Reduction vs. Damping \np = %.2f, rho = %.2f',p(2),r(2)); 
+else
+    titlename = sprintf('Sway Reduction vs. Damping \np = %.2f',p(2)); 
+end
+title(titlename),box off;
+ylabel('(m)');xlabel('Damping (N/(m/s))')%,ylim([0 8])
+
+subplot(1,3,3),hold on
+% Stiffness (k)
+for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
+    subj = subj_array_force(i);
+    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    plot(meanKxPOB(i,2),SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
+end
+[r(3),p(3)] = corr(meanKxPOB(:,2),SwayVRedF);
+%p = 6*p; % Bonferroni correction
+if p(3) < 0.05
+    c = polyfit(SwayVRedF,meanKxPOB(:,2),1);
+    plot(meanKxPOB(:,2),polyval(c,SwayVRedF),'k--');
+    titlename = sprintf('Sway Reduction vs. Stiffness \np = %.2f, rho = %.2f',p(3),r(3)); 
+else
+    titlename = sprintf('Sway Reduction vs. Stiffness \np = %.2f',p(3)); 
+end
+title(titlename),box off;
+% ylim([0 0.08]),xlim([0 8]);
+ylabel('(m)');xlabel('Stiffness (N/m)')%,ylim([0 8])
+
+[p' r']
+
+%% Correlations of m, b, k to mean F
+
+subplot(1,3,1),hold on
+% Mass (m)
+for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
+    subj = subj_array_force(i);
+    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    plot(meanMxPOB(i,2),meanFx(i,2),'.','markersize',14,'color',colors(indC,:));
+end
+[r(1),p(1)] = corr(meanFx(:,2),meanMxPOB(:,2));
+%p = 6*p; % Bonferroni correction
+if p(1) < 0.05
+    c = polyfit(meanMxPOB(:,2),meanFx(:,2),1);
+    plot(meanMxPOB(:,2),polyval(c,meanMxPOB(:,2)),'k--');
+    titlename = sprintf('Mean Force vs. Mass \np = %.2f, rho = %.2f',p(1),r(1)); 
+else
+    titlename = sprintf('Mean Force vs. Mass \np = %.2f',p(1)); 
+end
+title(titlename),box off;
+% ylim([0 0.08]),xlim([0 8]);
+ylabel('(N)');xlabel('Mass (kg)'),ylim([0 8])
+
+subplot(1,3,2),hold on
+% Damping (b)
+for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
+    subj = subj_array_force(i);
+    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    plot(meanBxPOB(i,2),meanFx(i,2),'.','markersize',14,'color',colors(indC,:));
+end
+[r(2),p(2)] = corr(meanFx(:,2),meanBxPOB(:,2));
+%p = 6*p; % Bonferroni correction
+if p(2) < 0.05
+    c = polyfit(meanBxPOB(:,2),meanFx(:,2),1);
+    plot(meanBxPOB(:,2),polyval(c,meanBxPOB(:,2)),'k--');
+    titlename = sprintf('Mean Force vs. Damping \np = %.2f, rho = %.2f',p(2),r(2)); 
+else
+    titlename = sprintf('Mean Force vs. Damping \np = %.2f',p(2)); 
+end
+title(titlename),box off;
+% ylim([0 0.08]),xlim([0 8]);
+ylabel('(N)');xlabel('Damping (N/(m/s))'),ylim([0 8])
+
+subplot(1,3,3),hold on
+% Stiffness (k)
+for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
+    subj = subj_array_force(i);
+    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    plot(meanKxPOB(i,2),meanFx(i,2),'.','markersize',14,'color',colors(indC,:));
+end
+[r(3),p(3)] = corr(meanKxPOB(:,2),meanFx(:,2));
+%p = 6*p; % Bonferroni correction
+if p(2) < 0.05
+    c = polyfit(meanFx(:,2),meanKxPOB(:,2),1);
+    plot(meanKxPOB(:,2),polyval(c,meanFx(:,2)),'k--');
+    titlename = sprintf('Mean Force vs. Stiffness \np = %.2f, rho = %.2f',p(3),r(3)); 
+else
+    titlename = sprintf('Mean Force vs. Stiffness \np = %.2f',p(3)); 
+end
+title(titlename),box off;
+% ylim([0 0.08]),xlim([0 8]);
+ylabel('(N)');xlabel('Stiffness (N/m)'),ylim([0 8])
+
+[p' r']
+
+%% % Power POB torso
 % subplot(2,3,3),hold on;
 % for n = 1:length(subj_array_force)
 %     subj = subj_array_force(n);
@@ -874,6 +1030,62 @@ ylabel('(Ns/m)');
 plotind = plotind + 1;
 subplot(1,4,plotind)
 boxplot(meanKxPOB(:,2),'colors','k','symbol','o');
+title('Stiffness'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('(N/m)')
+
+s = [112   602   854   258];
+set(gcf,'outerposition',s)
+
+%% Plot regression POB standardized coeff's, color coded
+
+for n = 1:length(subj_array_force)
+    subj = subj_array_force(n);
+    % Find color
+    ind = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    
+    subplot(1,4,1)
+    hold on;
+    plot(1,meanRsqxPOBst(n,2),'.','markersize',14,'color',colors(ind,:));
+    
+    subplot(1,4,2)
+    hold on;
+    plot(1,meanMxPOBst(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(1,4,3)
+    hold on;
+    plot(1,meanBxPOBst(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(1,4,4)
+    hold on;
+    plot(1,meanKxPOBst(n,2),'.','markersize',14,'color',colors(ind,:)); 
+end
+
+plotind = 0;
+
+% ML dir
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanRsqxPOBst(:,2),'colors','k','symbol','o'); hold on;
+title('R^2'); box off; set(gca,'xtick',5);
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanMxPOBst(:,2),'colors','k','symbol','o'); 
+title('Mass'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('(kg)')
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanBxPOBst(:,2),'colors','k','symbol','o');
+title('Damping'); hline(0,'k--');set(gca,'xtick',5); box off; 
+set(gca,'tickdir','out');
+ylabel('(Ns/m)');
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanKxPOBst(:,2),'colors','k','symbol','o');
 title('Stiffness'); hline(0,'k--');
 box off; set(gca,'xtick',5);
 ylabel('(N/m)')

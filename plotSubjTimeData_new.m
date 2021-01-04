@@ -1,7 +1,7 @@
  % Plot time series for all trials per subj for given variable to check metrics
 % were calculated correctly. Plot all trials, including early trials
 
-clear all; clc; close all;
+clear; clc; close all;
 
 subj_array = 3:14;
 subj_array_force = [3:5 8:13]; % HHI_01 and HHI_02 are pilots. HHI_06, _07, _14 are all missing Fx in the force data (force was unplugged)
@@ -16,6 +16,7 @@ plotPmag = 0;
 plotP = 0; % signed power
 plotStrategy = 0; % Opp/amp dev/ret
 plotTorsoFit = 1; % plot without the constant term
+titleVAF = 2; % Change title to display VAF of each term of model instead of value of coeff or Rsq of components
 plotIPFit = 0; % plot without the constant term
 
 colors(1,:) = [0.00,0.45,0.74]; % nice blue
@@ -35,8 +36,9 @@ end
 
 subjind = 0;
 temp = [];
-for subj = 3% subj_array
-    clear Fx Fy Fz
+for subj = subj_array_force
+    clear Fx Fy Fz 
+    VAF = []; Rsq = [];
     subjind = subjind + 1;
     filename = sprintf('HHI2017_%i.mat',subj);
     load(filename);
@@ -240,6 +242,9 @@ for subj = 3% subj_array
             elseif plotTorsoFit == 1 & strcmp(TrialData(i).Info.Condition,'Assist Beam') & (isnan(TrialData(i).Results.IntPower) == 0)
                 plotind = plotind + 1;
                 tAnalysis(1:2) = []; % only can do regression for 3:end since need acc
+                Fa = TrialData(i).Results.cx_torso(1).*TrialData(i).Results.aTorso(:,1);
+                Fv = TrialData(i).Results.cx_torso(2).*TrialData(i).Results.vTorso(2:end,1);
+                Fp = TrialData(i).Results.cx_torso(3).*(TrialData(i).Results.torso(3:end,1)-TrialData(i).Results.beamMidline);
                 clear temp;
                 temp.c = TrialData(i).Results.cx_torso;
                 temp.c(isnan(temp.c)) = 0;
@@ -247,14 +252,38 @@ for subj = 3% subj_array
                 subplot(numrows,numcols,plotind)
                 plot(tAnalysis,TrialData(i).Results.Forces(3:end,1)-temp.c(4),'color',0.75.*[1 1 1],'linewidth',2);hold on
                 plot(tAnalysis,m*temp.c(1:3),'k');
-                plot(tAnalysis,TrialData(i).Results.cx_torso(1).*TrialData(i).Results.aTorso(:,1),'color',colors(1,:));
-                plot(tAnalysis,TrialData(i).Results.cx_torso(2).*TrialData(i).Results.vTorso(2:end,1),'color',colors(2,:));
-                plot(tAnalysis,TrialData(i).Results.cx_torso(3).*(TrialData(i).Results.torso(3:end,1)-TrialData(i).Results.beamMidline),'color',colors(3,:));
+                plot(tAnalysis,Fa,'color',colors(1,:));
+                plot(tAnalysis,Fv,'color',colors(2,:));
+                plot(tAnalysis,Fp,'color',colors(3,:));
+                % Calculate VAF
+                VAF_m = rsqr_uncentered(TrialData(i).Results.Forces(3:end,1)-temp.c(4),Fa);
+                VAF_b = rsqr_uncentered(TrialData(i).Results.Forces(3:end,1)-temp.c(4),Fv);
+                VAF_k = rsqr_uncentered(TrialData(i).Results.Forces(3:end,1)-temp.c(4),Fp);
+                % Calculate Rsq
+                Rsq_m = rsqr(TrialData(i).Results.Forces(3:end,1)-temp.c(4),Fa);
+                Rsq_b = rsqr(TrialData(i).Results.Forces(3:end,1)-temp.c(4),Fv);
+                Rsq_k = rsqr(TrialData(i).Results.Forces(3:end,1)-temp.c(4),Fp);
+                % Save these values for each subj
+                VAF = [VAF; VAF_m VAF_b VAF_k];
+                Rsq = [Rsq; Rsq_m Rsq_b Rsq_k];
+                
                 if plotind == 1
-                    titlename = sprintf('HHI%i %s R^2 = %.2f',subj,TrialData(i).Info.Trial,TrialData(i).Results.rsqx_torso);
+                    if titleVAF == 1
+                        titlename = sprintf('HHI%i %s, VAF: m = %.2f, b = %.2f, k = %.2f',subj,TrialData(i).Info.Trial,VAF_m,VAF_b,VAF_k);
+                    elseif titleVAF == 2
+                        titlename = sprintf('HHI%i %s, R^2: m = %.2f, b = %.2f, k = %.2f',subj,TrialData(i).Info.Trial,Rsq_m,Rsq_b,Rsq_k);
+                    else
+                        titlename = sprintf('HHI%i %s R^2 = %.2f, m = %.2f, b = %.2f, k = %.2f',subj,TrialData(i).Info.Trial,TrialData(i).Results.rsqx_torso,TrialData(i).Results.cx_torso(1),TrialData(i).Results.cx_torso(2),TrialData(i).Results.cx_torso(3));
+                    end
                     legend('F','Fmodel','Facc','Fvel','Fdisp','orientation','horizontal');
                 else
-                    titlename = sprintf('%s R^2 = %.2f, m = %.2f, b = %.2f, k = %.2f',TrialData(i).Info.Trial,TrialData(i).Results.rsqx_torso,TrialData(i).Results.cx_torso(1),TrialData(i).Results.cx_torso(2),TrialData(i).Results.cx_torso(3));
+                    if titleVAF == 1
+                        titlename = sprintf('%s , VAF: m = %.2f, b = %.2f, k = %.2f',TrialData(i).Info.Trial,VAF_m,VAF_b,VAF_k);
+                    elseif titleVAF == 2
+                        titlename = sprintf('%s R^2: m = %.2f, b = %.2f, k = %.2f',TrialData(i).Info.Trial,Rsq_m,Rsq_b,Rsq_k);
+                    else
+                        titlename = sprintf('%s R^2 = %.2f, m = %.2f, b = %.2f, k = %.2f',TrialData(i).Info.Trial,TrialData(i).Results.rsqx_torso,TrialData(i).Results.cx_torso(1),TrialData(i).Results.cx_torso(2),TrialData(i).Results.cx_torso(3));
+                    end
                 end
                 title(titlename);xlabel('Time (s)'),ylabel('Lateral Force (N)');
             elseif plotIPFit == 1 & strcmp(TrialData(i).Info.Condition,'Assist Beam') & (isnan(TrialData(i).Results.IntPower) == 0)
@@ -271,7 +300,7 @@ for subj = 3% subj_array
                 plot(tAnalysis,TrialData(i).Results.cx_IP(2).*TrialData(i).Results.IntPtVel(2:end,1),'color',colors(2,:));
                 plot(tAnalysis,TrialData(i).Results.cx_IP(3).*(TrialData(i).Results.IntPt(3:end,1)-nanmean(TrialData(i).Results.IntPt(3:end,1))),'color',colors(3,:));
                 if plotind == 1
-                    titlename = sprintf('HHI%i %s R^2 = %.2f, m = %.2f, b = %.2f, k = %.2f',subj,TrialData(i).Info.Trial,TrialData(i).Results.rsqx_IP,TrialData(i).Results.cx_IP(1),TrialData(i).Results.cx_IP(2),TrialData(i).Results.cx_IP(3));
+                    titlename = sprintf('HHI%i %s, m = %.2f, b = %.2f, k = %.2f',subj,TrialData(i).Info.Trial,TrialData(i).Results.rsqx_IP,TrialData(i).Results.cx_IP(1),TrialData(i).Results.cx_IP(2),TrialData(i).Results.cx_IP(3));
                     legend('F','Fmodel','Facc','Fvel','Fdisp','orientation','horizontal');
                 else
                     titlename = sprintf('%s R^2 = %.2f, m = %.2f, b = %.2f, k = %.2f',TrialData(i).Info.Trial,TrialData(i).Results.rsqx_IP,TrialData(i).Results.cx_IP(1),TrialData(i).Results.cx_IP(2),TrialData(i).Results.cx_IP(3));
@@ -296,10 +325,17 @@ for subj = 3% subj_array
         figname = sprintf('HHI%i_FvIP',subj);
     elseif plotTorsoFit == 1
         figname = sprintf('HHI%i_forceFitTorso',subj);
+        fname = sprintf('HHI%i_VAF_Rsq',subj);
     end
     if plotDistSpeed ~= 1
         set(gcf,'outerposition',[  -7         180        1072         909]);
     end
     saveas(gcf,figname,'fig');
+    save(fname,'VAF','Rsq'); % save for each subj
+    VAF_all(subjind,:) = nanmean(VAF); % save subj mean
+    Rsq_all(subjind,:) = nanmean(Rsq); % save subj mean
+    
     close all;
 end
+
+save('force_VAF_Rsq','VAF_all','Rsq_all');

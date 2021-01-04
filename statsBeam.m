@@ -151,6 +151,11 @@ for subj = subj_array_force
             PposXarray = [PposXarray; forces.GroupStats.meanPosPowerIntPtX(rows)];
             PnegXarray = [PnegXarray; forces.GroupStats.meanNegPowerIntPtX(rows)];
             
+            % Concat stiffness and damping for k-means clustering. Do mass
+            % too just in case
+            coeffs_array(n,:) = [nanmean(forces.GroupStats.mx_torso(rows)) nanmean(forces.GroupStats.bx_torso(rows)) nanmean(forces.GroupStats.kx_torso(rows))];
+            
+            % Calculate forces
             % Concat lag F to torso state
             lagFIPTorsoX(n) = nanmean(forces.GroupStats.lagFIPTorsoX(rows));
             lagFIPvTorsoX(n) = nanmean(forces.GroupStats.lagFIPvTorsoX(rows));
@@ -189,8 +194,8 @@ test = {};
 % Compare Assist Ground vs. Assist Beam per direction
 % Stats tests compare 2 paired samples
 [px,stat(1),test{1}] = comp2groups(Fx(:,1),Fx(:,2));
-[py,stat(2),test{2}] = comp2groups(Fy(:,1),Fy(:,2));
-[pz,stat(3),test{3}] = comp2groups(Fz(:,1),Fz(:,2));
+% [py,stat(2),test{2}] = comp2groups(Fy(:,1),Fy(:,2));
+% [pz,stat(3),test{3}] = comp2groups(Fz(:,1),Fz(:,2));
 
 [stat' [px;py;pz]]
 test
@@ -199,8 +204,8 @@ clear stat
 test = {};
 % For Assist Beam, compare pos vs. neg force
 [px,stat(1),test{1}] = comp2groups(FposX,FnegX);
-[py,stat(2),test{2}] = comp2groups(FposY,FnegY);
-[pz,stat(3),test{3}] = comp2groups(FposZ,FnegZ);
+% [py,stat(2),test{2}] = comp2groups(FposY,FnegY);
+% [pz,stat(3),test{3}] = comp2groups(FposZ,FnegZ);
 [stat' [px;py;pz]]
 test
 
@@ -230,7 +235,7 @@ W = subj_array_force(iSort(1:4)); B = subj_array_force(iSort(6:end));
 [p,stat,test] = comp2groups(Fx(iSort(1:4),2),Fx(iSort(6:end),2))
 
 % Plot for above test
-plot(1:2,[Fx(iSort(1:4),2) Fx(iSort(6:end),2)],'kx')
+plot(1:2,[Fx(iSort(1:4),2) Fx(iSort(6:end),2)],'Fx')
 xlim([0.5 2.5]),set(gca,'xtick',1:2); 
 xlab{1} = 'Worse'; xlab{2} = 'Better'; set(gca,'xticklabel',xlab)
 xlabel('Solo balance (beam distance)'); ylabel('Mean F mag (N)');
@@ -259,7 +264,7 @@ deltaSDFx = mean(FxSD(:,2))-mean(FxSD(:,1))
 % deltaFzPer = (mean(Fz(:,2))-mean(Fz(:,1)))/mean(Fz(:,1))
 
 %% Velocity magnitude tests
-
+clc
 clear stat 
 test = {};
 
@@ -418,3 +423,91 @@ if P1 > 0
     [H,p,CI,stats] = ttest(lagFIPvTorsoX,0);
     test = 't-test';
 end
+
+%% Split up data into groups based on regression coefficients, test if 
+% performance improvement is sig diff between groups - one group only has 2
+% partnerships in it
+
+% Just k and b
+X = coeffs_array(:,2:3);
+rng(1); % For reproducibility
+[idx,C] = kmeans(X,2);
+
+% Use kmeans to compute the distance from each centroid to points on a grid. To do this, pass the centroids (C) and points on a grid to kmeans, and implement one iteration of the algorithm.
+x1 = min(X(:,1)):0.01:max(X(:,1));
+x2 = min(X(:,2)):0.01:max(X(:,2));
+[x1G,x2G] = meshgrid(x1,x2);
+XGrid = [x1G(:),x2G(:)]; % Defines a fine grid on the plot
+
+idx2Region = kmeans(XGrid,2,'MaxIter',1,'Start',C);
+% kmeans displays a warning stating that the algorithm did not converge, which you should expect since the software only implemented one iteration.
+
+% Plot the cluster regions.
+
+figure;
+gscatter(XGrid(:,1),XGrid(:,2),idx2Region,...
+    [0,0.75,0.75;0.75,0,0.75;0.75,0.75,0],'..');
+hold on;
+plot(X(:,1),X(:,2),'k*','MarkerSize',5);
+xlabel('b (N/(m/s))');ylabel('k (N/m)');
+hold off;
+
+%% Split up data into groups based on R^2 each component
+load('force_VAF_Rsq.mat')
+
+% Just k and b
+X = Rsq_all(:,2:3);
+rng(1); % For reproducibility
+[idx,C] = kmeans(X,2);
+
+% Use kmeans to compute the distance from each centroid to points on a grid. To do this, pass the centroids (C) and points on a grid to kmeans, and implement one iteration of the algorithm.
+x1 = min(X(:,1)):0.01:max(X(:,1));
+x2 = min(X(:,2)):0.01:max(X(:,2));
+[x1G,x2G] = meshgrid(x1,x2);
+XGrid = [x1G(:),x2G(:)]; % Defines a fine grid on the plot
+
+idx2Region = kmeans(XGrid,2,'MaxIter',1,'Start',C);
+% kmeans displays a warning stating that the algorithm did not converge, which you should expect since the software only implemented one iteration.
+
+% Plot the cluster regions.
+
+figure;
+gscatter(XGrid(:,1),XGrid(:,2),idx2Region,...
+    [0,0.75,0.75;0.75,0,0.75;0.75,0.75,0],'..');
+hold on;
+plot(X(:,1),X(:,2),'k*','MarkerSize',5);
+xlabel('R^2 Fb');ylabel('R^2 Fk');
+hold off;
+
+%% Test linear correlations
+conds = {'Solo Beam','Assist Beam','Solo Ground','Assist Ground'};
+
+%% Sway reduction solo to partner beam-walking
+[c,ia,ib] = intersect(subj_array,subj_array_force);
+SwayVRedF = StdSway(ia,1) - StdSway(ia,2);
+plotind = 0;
+plotind = plotind+1;
+[r(plotind),p(plotind)] = corr(Fx(:,2),SwayVRedF);
+plotind = plotind+1;
+[r(plotind),p(plotind)] = corr(FxSD(:,2),SwayVRedF);
+plotind = plotind+1;
+[r(plotind),p(plotind)] = corr(Vx(:,2),SwayVRedF);
+plotind = plotind+1;
+[r(plotind),p(plotind)] = corr(SDVx(:,2),SwayVRedF);
+plotind = plotind+1;
+[r(plotind),p(plotind)] = corr(Px(:,2),SwayVRedF);
+plotind = plotind+1;
+[r(plotind),p(plotind)] = corr(PxSD(:,2),SwayVRedF);
+
+%% More correlations 
+[c,ia,ib] = intersect(subj_array,subj_array_force);
+plotind = 0;
+plotind = plotind+1;
+[r(plotind),p(plotind)] = corr(Fx(:,2),StdSway(ia,2));
+plotind = plotind+1;
+[r(plotind),p(plotind)] = corr(Fx(:,2),coeffs_array(:,2)); % b
+plotind = plotind+1;
+[r(plotind),p(plotind)] = corr(Fx(:,2),coeffs_array(:,3)); % k
+% plotind = plotind+1;
+% [r(plotind),p(plotind)] = corr(FxSD(:,2),StdSway(ia,2));
+
