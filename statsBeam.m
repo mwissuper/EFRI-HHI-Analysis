@@ -194,8 +194,8 @@ test = {};
 % Compare Assist Ground vs. Assist Beam per direction
 % Stats tests compare 2 paired samples
 [px,stat(1),test{1}] = comp2groups(Fx(:,1),Fx(:,2));
-% [py,stat(2),test{2}] = comp2groups(Fy(:,1),Fy(:,2));
-% [pz,stat(3),test{3}] = comp2groups(Fz(:,1),Fz(:,2));
+[py,stat(2),test{2}] = comp2groups(Fy(:,1),Fy(:,2));
+[pz,stat(3),test{3}] = comp2groups(Fz(:,1),Fz(:,2));
 
 [stat' [px;py;pz]]
 test
