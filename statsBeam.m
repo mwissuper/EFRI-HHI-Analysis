@@ -18,12 +18,15 @@ for subj = subj_array
         if i == 1 || i == 2
             Dist(n,i) = nanmean(kinem.GroupStats.Dist(rows)); % Total distance traveled on beam
             AvgSpeed(n,i) = nanmean(kinem.GroupStats.AvgSpeed(rows)); % Average speed of walking on beam
+            meanLyGd(n,i) = nanmean(kinem.GroupStats.meanLy(rows)); % Just mean, not mean of abs value
+            SDLyGd(n,i) = nanmean(kinem.GroupStats.SDLy(rows));
         end
     end
 end
 
 %% Stats tests to compare Solo Beam vs. Assist Beam
-
+clc
+clear stat p
 % Compare value vs. mean (full beam length for all assisted trials)
 [Hl,P1] = lillietest(Dist(:,1)); % First test if distrib is normal so know which test to use next
 if P1 > 0
@@ -33,10 +36,15 @@ end
 
 [p(1),stat(1),test{1}] = comp2groups(AvgSpeed(:,1),AvgSpeed(:,2));
 [p(2),stat(2),test{2}] = comp2groups(StdSway(:,1),StdSway(:,2));
+[p(3),stat(3),test{3}] = comp2groups(meanLyGd(:,1),meanLyGd(:,2));
+% [p(4),stat(4),test{4}] = comp2groups(SDLyGd(:,1),SDLyGd(:,2));
 
 [stats.tstat p1]
 [stat' p']
 test
+
+% Print means
+[nanmean(Dist(:,1:2)); nanmean(AvgSpeed(:,1:2)); nanmean(StdSway(:,1:2)); nanmean(meanLyGd(:,1:2))]
 
 %% Stats tests to compare Solo Ground vs. Assist Ground
 clc
@@ -92,24 +100,44 @@ for subj = subj_array_force
         Fx(n,i) = nanmean(forces.GroupStats.meanFx(rows)); 
         Fy(n,i) = nanmean(forces.GroupStats.meanFy(rows));
         Fz(n,i) = nanmean(forces.GroupStats.meanFz(rows));
+        Fxz(n,i) = nanmean(forces.GroupStats.meanFxz(rows));
+        theta(n,i) = nanmean(forces.GroupStats.meanTheta(rows));
         FxSD(n,i) = nanmean(forces.GroupStats.SDFx(rows)); 
         FySD(n,i) = nanmean(forces.GroupStats.SDFy(rows));
         FzSD(n,i) = nanmean(forces.GroupStats.SDFz(rows));
+        FxzSD(n,i) = nanmean(forces.GroupStats.SDFxz(rows));
+        thetaSD(n,i) = nanmean(forces.GroupStats.SDTheta(rows));
         
         %% IP
-        % Vel mag (unsigned)
+        % Vel RMS
         Vx(n,i) = nanmean(forces.GroupStats.meanVx(rows)); 
         SDVx(n,i) = nanmean(forces.GroupStats.SDVx(rows)); 
         Vy(n,i) = nanmean(forces.GroupStats.meanVy(rows));
         Vz(n,i) = nanmean(forces.GroupStats.meanVz(rows));
+        SDVz(n,i) = nanmean(forces.GroupStats.SDVz(rows)); 
+        meanW(n,i) = nanmean(forces.GroupStats.meanW(rows)); 
         
         % Power (signed)
         Px(n,i) = nanmean(forces.GroupStats.meanIPpowerX(rows)); 
         Py(n,i) = nanmean(forces.GroupStats.meanIPpowerY(rows));
         Pz(n,i) = nanmean(forces.GroupStats.meanIPpowerZ(rows));
+        Pxz(n,i) = nanmean(forces.GroupStats.meanIPpowerXZ(rows));
         PxSD(n,i) = nanmean(forces.GroupStats.SDIPpowerX(rows)); 
         PySD(n,i) = nanmean(forces.GroupStats.SDIPpowerY(rows));
         PzSD(n,i) = nanmean(forces.GroupStats.SDIPpowerZ(rows));
+        PxzSD(n,i) = nanmean(forces.GroupStats.SDIPpowerXZ(rows));
+        meanPang(n,i) = nanmean(forces.GroupStats.meanPowerAng(rows));
+        meanPangPos(n,i) = nanmean(forces.GroupStats.meanPangPos(rows));
+        meanPangNeg(n,i) = nanmean(forces.GroupStats.meanPangNeg(rows));
+        
+        % Power (RMS)
+        meanPangRMS(n,i) = nanmean(forces.GroupStats.meanPowerAngRMS(rows));
+        
+        % Torque (signed) 
+        meanTyGd(n,i) = nanmean(forces.GroupStats.meanTorqueYgd(rows)); % Just mean, not mean of abs value
+        SDTyGd(n,i) = nanmean(forces.GroupStats.SDTorqueYgd(rows));
+        meanTyTorso(n,i) = nanmean(forces.GroupStats.meanTorqueYTorso(rows)); % Just mean, not mean of abs value
+        SDTyTorso(n,i) = nanmean(forces.GroupStats.SDTorqueYTorso(rows));
         
         % effective arm length
         armPOBx(n,i) = nanmean(forces.GroupStats.meanArmPOBX(rows)); 
@@ -194,23 +222,34 @@ test = {};
 % Compare Assist Ground vs. Assist Beam per direction
 % Stats tests compare 2 paired samples
 [px,stat(1),test{1}] = comp2groups(Fx(:,1),Fx(:,2));
-[py,stat(2),test{2}] = comp2groups(Fy(:,1),Fy(:,2));
-[pz,stat(3),test{3}] = comp2groups(Fz(:,1),Fz(:,2));
+% [py,stat(2),test{2}] = comp2groups(Fy(:,1),Fy(:,2));
+[pz,stat(2),test{2}] = comp2groups(Fz(:,1),Fz(:,2));
+[pxz,stat(3),test{3}] = comp2groups(Fxz(:,1),Fxz(:,2));
+[ptheta,stat(4),test{4}] = comp2groups(theta(:,1),theta(:,2));
 
-[stat' [px;py;pz]]
+[stat' [px;py;pxz;ptheta]]
 test
+% Print means
+[nanmean(Fx(:,1:2)); nanmean(Fz(:,1:2)); nanmean(Fxz(:,1:2)); nanmean(theta(:,1:2))]
 
+%% Look at effect of drift of force baseline/zero
 clear stat 
 test = {};
 % For Assist Beam, compare pos vs. neg force
-[px,stat(1),test{1}] = comp2groups(FposX,FnegX);
+% [px,stat(1),test{1}] = comp2groups(FposX,FnegX);
 % [py,stat(2),test{2}] = comp2groups(FposY,FnegY);
 % [pz,stat(3),test{3}] = comp2groups(FposZ,FnegZ);
-[stat' [px;py;pz]]
-test
+% [stat' [px;py;pz]]
+% test
 
 % Worst case scenario of drift 1.5N to reduce mean differences
-[px,stat,test] = comp2groups(FposX-1.5,FnegX+1.5)
+% [p(1),stat(1),test(1)] = comp2groups(Fx-1.5,Fx+1.5);
+% [stat' p']
+% test
+
+% [p(1),stat(1),test(1)] = comp2groups(FposX-1.5,FnegX+1.5);
+% [stat' p']
+% test
 
 %% Compare force means for better vs. worse halves (based on solo dist
 % metric). 1) divide the two groups of better vs. worse based on all 12
@@ -250,9 +289,14 @@ clear stat; test = {}; clc;
 [px,stat(1),test{1}] = comp2groups(FxSD(:,1),FxSD(:,2));
 [py,stat(2),test{2}] = comp2groups(FySD(:,1),FySD(:,2));
 [pz,stat(3),test{3}] = comp2groups(FzSD(:,1),FzSD(:,2));
+[pxz,stat(4),test{4}] = comp2groups(FxzSD(:,1),FxzSD(:,2));
+[ptheta,stat(5),test{5}] = comp2groups(thetaSD(:,1),thetaSD(:,2));
 
-[stat' [px;py;pz]]
+[stat' [px;py;pz;pxz;ptheta]]
 test
+
+% Print means
+[nanmean(FxSD(:,1:2)); nanmean(FySD(:,1:2)); nanmean(FzSD(:,1:2)); nanmean(FxzSD(:,1:2)); nanmean(thetaSD(:,1:2))]
 
 %% Calculate abs and percent change assist ground vs assist beam
 
@@ -263,22 +307,27 @@ deltaSDFx = mean(FxSD(:,2))-mean(FxSD(:,1))
 % deltaFxPer = (mean(Fx(:,2))-mean(Fx(:,1)))/mean(Fx(:,1))
 % deltaFzPer = (mean(Fz(:,2))-mean(Fz(:,1)))/mean(Fz(:,1))
 
-%% Velocity magnitude tests
+%% Velocity (RMS) tests
 clc
-clear stat 
+clear stat p
 test = {};
 
 % Compare Assist Ground vs. Assist Beam per direction
 % Stats tests compare 2 paired samples
-[px,stat(1),test{1}] = comp2groups(Vx(:,1),Vx(:,2));
-[p2,stat(2),test{2}] = comp2groups(SDVx(:,1),SDVx(:,2));
+[p(1),stat(1),test{1}] = comp2groups(Vx(:,1),Vx(:,2));
 % [py,stat(2),test{2}] = comp2groups(Vy(:,1),Vy(:,2));
-% [pz,stat(3),test{3}] = comp2groups(Vz(:,1),Vz(:,2));
+[p(2),stat(2),test{2}] = comp2groups(Vz(:,1),Vz(:,2));
+[p(3),stat(3),test{3}] = comp2groups(SDVx(:,1),SDVx(:,2));
+[p(4),stat(4),test{4}] = comp2groups(SDVz(:,1),SDVz(:,2));
+[p(5),stat(5),test{5}] = comp2groups(meanW(:,1),meanW(:,2));
 
-[stat' [px;p2]]
+[stat' p']
 test
 
-%% Mean power tests - IP
+% Print means
+[nanmean(Vx(:,1:2)); nanmean(Vz(:,1:2)); nanmean(meanW(:,1:2))]
+
+%% Mean power tests - power flow at IP
 clc;
 % Compare Assist Beam vs. normal walking (or other small-power) thresh
 
@@ -296,14 +345,23 @@ clear stat
 test = {};
 % Compare Assist Ground vs. Assist Beam per direction
 % Stats tests compare 2 paired samples
-[px,stat(1),test{1}] = comp2groups(Px(:,1),Px(:,2));
-[py,stat(2),test{2}] = comp2groups(Py(:,1),Py(:,2));
-[pz,stat(3),test{3}] = comp2groups(Pz(:,1),Pz(:,2));
-[stat' [px;py;pz]]
+[p(1),stat(1),test{1}] = comp2groups(Px(:,1),Px(:,2));
+[p(2),stat(2),test{2}] = comp2groups(Py(:,1),Py(:,2));
+[p(3),stat(3),test{3}] = comp2groups(Pz(:,1),Pz(:,2));
+[p(4),stat(4),test{4}] = comp2groups(Pxz(:,1),Pxz(:,2));
+[p(5),stat(5),test{5}] = comp2groups(meanPang(:,1),meanPang(:,2));
+[p(6),stat(6),test{6}] = comp2groups(meanPangRMS(:,1),meanPangRMS(:,2));
+[p(7),stat(7),test{7}] = comp2groups(meanPangPos(:,1),meanPangPos(:,2));
+[p(8),stat(8),test{8}] = comp2groups(meanPangNeg(:,1),meanPangNeg(:,2));
+[stat' p']
+
 test
 
 clear stat 
 test = {};
+
+% Print means
+[nanmean(Px(:,1:2)); nanmean(Py(:,1:2)); nanmean(Pz(:,1:2)); nanmean(Pxz(:,1:2)); nanmean(meanPang(:,1:2)); nanmean(meanPangRMS(:,1:2)); nanmean(meanPangPos(:,1:2)); nanmean(meanPangNeg(:,1:2))]
 
 %% For Assist Beam, compare pos vs. neg power
 clc; clear stat; test = {};
@@ -325,9 +383,13 @@ clear stat; test = {}; clc;
 [px,stat(1),test{1}] = comp2groups(PxSD(:,1),PxSD(:,2));
 [py,stat(2),test{2}] = comp2groups(PySD(:,1),PySD(:,2));
 [pz,stat(3),test{3}] = comp2groups(PzSD(:,1),PzSD(:,2));
+[pxz,stat(4),test{4}] = comp2groups(PxzSD(:,1),PxzSD(:,2));
 
-[stat' [px;py;pz]]
+[stat' [px;py;pz;pxz]]
 test
+
+% Print means
+[nanmean(PxSD(:,1:2)); nanmean(PySD(:,1:2)); nanmean(PzSD(:,1:2)); nanmean(PxzSD(:,1:2))]
 
 %% Calculate abs and percent change assist ground vs assist beam
 % deltaPx = mean(Px(:,2))-mean(Px(:,1))
@@ -342,6 +404,21 @@ dPxBeam = mean(PnegX)-mean(PposX)
 dPyBeam = mean(PnegY)-mean(PposY)
 
 dPzBeam = mean(PnegZ)-mean(PposZ)
+
+%% Mean torque about beam/ground
+clc;
+clear stat p
+test = {};
+% Compare Assist Ground vs. Assist Beam 
+% Stats tests compare 2 paired samples
+[p(1),stat(1),test{1}] = comp2groups(meanTyGd(:,1),meanTyGd(:,2));
+% [p(2),stat(2),test{2}] = comp2groups(SDTyGd(:,1),SDTyGd(:,2));
+
+[stat' p']
+test
+
+% Print means
+nanmean(meanTyGd(:,1:2))
 
 %% Test percent time of trials spent in each strategy
 

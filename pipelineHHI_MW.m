@@ -20,11 +20,11 @@
 clear; close all; clc;
 
 analyze_force = 1;
-plotCheck = 0; % 1 = plot clav AP and ML pos to check distance completed on beam per trial. 
+plotCheck = 0; % 1 = plot heel vertical pos and torso sway to check start/stop time 
 % 2 = plot algo calc dist vs Luke's method. 
-% 3 = plot sway vs. beam midline for beam-walking trials
-% 4 = plot torso ML pos and torso AP vel to check analysis window for
-% overground walking trials
+% 3 = plot sway vs. midline
+% 4 = plot 2D force mag, moment arm, and torque mag
+% 5 = plot wTorso to check angular momentum
 
 temp = cd;
 sourcefolder = [temp,'\Data files'];
@@ -46,7 +46,7 @@ for subj = subj_array
     % Manually correct marker labeling errors since don't know how to fix
     % in Nexus and then export to mat
     if subj == 3
-        for n = [35 46 49]
+        for n = [35 39 46 49]
             temp = TrialData(n).Markers.POB.LHEE;
             TrialData(n).Markers.POB.LHEE = TrialData(n).Markers.POB.LTOE;
             TrialData(n).Markers.POB.LTOE = temp;
@@ -62,10 +62,11 @@ for subj = subj_array
         TrialData(45).Markers.FH.frontright = TrialData(45).Markers.FH.frontmiddle;
         TrialData(45).Markers.FH.frontmiddle = temp;
     elseif subj == 14
-        n = 31;
-        temp = TrialData(n).Markers.POB.LHEE;
-        TrialData(n).Markers.POB.LHEE = TrialData(n).Markers.POB.LTOE;
-        TrialData(n).Markers.POB.LTOE = temp;
+        for n = [24 31]
+            temp = TrialData(n).Markers.POB.LHEE;
+            TrialData(n).Markers.POB.LHEE = TrialData(n).Markers.POB.LTOE;
+            TrialData(n).Markers.POB.LTOE = temp;
+        end
     end
     TrialData = mainWorkPowerAnalysisMW(TrialData,subj,plotCheck);               % Calculates work and power transfer
 

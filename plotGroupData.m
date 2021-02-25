@@ -1,8 +1,15 @@
-% Plot results for all subj's combined
+%% Plot results for all subj's combined
+clear; close all; clc;
+
+colors = hsv(12);
+colors(3,:) = [0.85,0.33,0.10]; % replace yellow
+colors(5,:) = [0.47,0.67,0.19]; % replace a green
+colors(6,:) = [0.5,0.5,0.5]; 
+colors(8,:) = [0.00,0.50,1.00];
+colors(12,:) = [0.49,0.18,0.56];
 
 %% Calculate subj means for performance metric data
 
-clear; close all; clc;
 load HHI2017_Stats_MW.mat;
 % Find means for each trial type for each subj
 n = 0;
@@ -19,17 +26,16 @@ for subj = subj_array % HHI12 had close to mean sway, good example subj
         StdSway(n,i) = nanmean(GroupStats.StdSway(rows)); % SD Clav sway
         Dist(n,i) = nanmean(GroupStats.Dist(rows)); % Total distance traveled on beam
         AvgSpeed(n,i) = nanmean(GroupStats.AvgSpeed(rows)); % Average speed of walking on beam
+        
+        meanLyGd(n,i) = nanmean(GroupStats.meanLy(rows)); % Just mean, not mean of abs value
+        SDLyGd(n,i) = nanmean(GroupStats.SDLy(rows));
+        
+        meanW(n,i) = nanmean(GroupStats.meanW(rows)); % Just mean, not mean of abs value
     end
 end
 
 %% Plot performance metric results, color code participants
 close all;
-colors = hsv(12);
-colors(3,:) = [0.85,0.33,0.10]; % replace yellow
-colors(5,:) = [0.47,0.67,0.19]; % replace a green
-colors(6,:) = [0.5,0.5,0.5]; 
-colors(8,:) = [0.00,0.50,1.00];
-colors(12,:) = [0.49,0.18,0.56];
 
 xlab = {'Solo ground','Partnered ground','Solo beam','Partnered beam'};
 
@@ -125,18 +131,64 @@ set(gca,'ytick',0:0.04:0.08)
 
 % set(gcf,'outerposition',[267   423   685   457]);
 
-%% Speed as strategy
+%% Plot mean angular momentum and correlation with sway metric
+% bar plot
+figure
+numrows = 1; numcols = 2;
+plotind = 0;
+condLab{1} = 'Solo';
+condLab{2} = 'Partnered';
+
+% Means and SD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Mean Ly about ground axis
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanLyGd(:,3:4),condLab,'Mean RMS Ly gd','(kg*m^2/s)');
+sigstar({[1,2]})
+
+% SD Ly about ground axis
+% subplot(1,2,2),hold on;
+% h = barPlot2cond(SDLyGd(:,3:4),condLab,'Ly gd variability','(kg*m/s)');
+
+clear p r test ind
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+ind = 1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr([meanLyGd(:,3); meanLyGd(:,4)],[StdSway(:,3);StdSway(:,4)],subj_array,subj_array,colors,'Sway vs. Ly gd','(rad/s)','SD ML torso disp. (m)'); 
+
+%% Do same as above for angular speed (RMS) just to double check
+
+% bar plot
+figure
+numrows = 1; numcols = 2;
+plotind = 0;
+condLab{1} = 'Solo';
+condLab{2} = 'Partnered';
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanW(:,3:4),condLab,'Mean RMS torso ang speed','(rad/s)');
+
+clear p r test ind
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+ind = 1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr([meanW(:,3); meanW(:,4)],[StdSway(:,3);StdSway(:,4)],subj_array,subj_array,colors,'Sway vs. W','(rad/s)','SD ML torso disp. (m)'); 
+
+%% Plot AP speed (strategy)
 % Speed
-subplot(2,3,2),hold on
+hold on
 for n = 1:length(subj_array)
-    plot(1:2,AvgSpeed(n,:),'color',colors(n,:)); 
+    plot(1:2,AvgSpeed(n,3:4),'color',colors(n,:)); 
 end
 box off; set(gca,'tickdir','out');
 xlim([0.5 2.5]); set(gca,'xtick',1:2);
 set(gca,'xticklabel',{'Solo','Partnered'});
 title('Mean forward speed');ylabel('(m/s)')
 
-subplot(1,3,2)
 boxplot(AvgSpeed,'colors','k','symbol','o'); % sigstar({[1,2]}); set(gca,'xticklabel',condLab); box off; set(gca,'tickdir','out');
 % ylabel('Mean forward speed (m/s)'); xtickangle(45)
 xlim([0.5 2.5]); set(gca,'xtick',1:2);box off;
@@ -144,6 +196,7 @@ set(gca,'xticklabel',{'Solo','Partnered'}); %ylim([-0.05 0.8]),
 % set(gca,'ytick',0:0.4:0.8)
 
 %% Force data
+
 load HHI2017_Stats_force_MW.mat;
 % Find means for each trial type for each subj
 n = 0;
@@ -171,10 +224,113 @@ for subj = subj_array_force
     n = n + 1;
     for i = [2 4]
         rows = GroupStats.Subject==subj & strcmp(GroupStats.Type,conds{i});
+        
         %% ML/X dir
-        % Power IP 
+        
+        % Force 
+        meanFx(n,i/2) = nanmean(GroupStats.meanFx(rows)); % Just mean, not mean of abs value
+        SDFx(n,i/2) = nanmean(GroupStats.SDFx(rows));
+        % Velocity of IP
+        meanVx(n,i/2) = nanmean(GroupStats.meanVx(rows)); % Mean abs(v)
+        SDVx(n,i/2) = nanmean(GroupStats.SDVx(rows)); % Mean abs(v)
+        % Power at IP 
         meanPX(n,i/2) = nanmean(GroupStats.meanIPpowerX(rows)); % signed mean
         SDPX(n,i/2) = nanmean(GroupStats.SDIPpowerX(rows));
+        % Regression beam-walker torso to force (nan value if n.s. fit)
+        meanMxPOB(n,i/2) = nanmean(GroupStats.mx_torso(rows));
+        meanBxPOB(n,i/2) = nanmean(GroupStats.bx_torso(rows));
+        meanKxPOB(n,i/2) = nanmean(GroupStats.kx_torso(rows));
+        meanRsqxPOB(n,i/2) = nanmean(GroupStats.Rsqx_torso(rows));
+        % Calculate percent of trials where param was sig.
+        if i == 4 % Assist Beam condition only
+            mxPOBsig(n) = length(find(~isnan(GroupStats.mx_torso(rows))))/length(GroupStats.mx_torso(rows));
+            bxPOBsig(n) = length(find(~isnan(GroupStats.bx_torso(rows))))/length(GroupStats.bx_torso(rows));
+            kxPOBsig(n) = length(find(~isnan(GroupStats.kx_torso(rows))))/length(GroupStats.kx_torso(rows));
+        end
+        
+        %% Vertical/Z dir
+        
+        % Force 
+        meanFz(n,i/2) = nanmean(GroupStats.meanFz(rows)); % Just mean, not mean of abs value
+        SDFz(n,i/2) = nanmean(GroupStats.SDFz(rows));
+        % Velocity of IP
+        meanVz(n,i/2) = nanmean(GroupStats.meanVz(rows)); % Mean abs(v)
+        SDVz(n,i/2) = nanmean(GroupStats.SDVz(rows)); % Mean abs(v)
+        % Power at IP 
+        meanPZ(n,i/2) = nanmean(GroupStats.meanIPpowerZ(rows)); % signed mean
+        SDPZ(n,i/2) = nanmean(GroupStats.SDIPpowerZ(rows));
+        % Regression beam-walker torso to force (nan value if n.s. fit)
+        meanMzPOB(n,i/2) = nanmean(GroupStats.mz_torso(rows));
+        meanBzPOB(n,i/2) = nanmean(GroupStats.bz_torso(rows));
+        meanKzPOB(n,i/2) = nanmean(GroupStats.kz_torso(rows));
+        meanRsqzPOB(n,i/2) = nanmean(GroupStats.Rsqz_torso(rows));
+        % Calculate percent of trials where param was sig.
+        if i == 4 % Assist Beam condition only
+            mzPOBsig(n) = length(find(~isnan(GroupStats.mz_torso(rows))))/length(GroupStats.mz_torso(rows));
+            bzPOBsig(n) = length(find(~isnan(GroupStats.bz_torso(rows))))/length(GroupStats.bz_torso(rows));
+            kzPOBsig(n) = length(find(~isnan(GroupStats.kz_torso(rows))))/length(GroupStats.kz_torso(rows));
+        end
+
+        %% 2D vector force in x and z
+        % Force 
+        meanFxz(n,i/2) = nanmean(GroupStats.meanFxz(rows)); % Just mean, not mean of abs value
+        SDFxz(n,i/2) = nanmean(GroupStats.SDFxz(rows));
+        meanFxz(n,i/2) = nanmean(GroupStats.meanFxz(rows)); % Just mean, not mean of abs value
+        SDFxz(n,i/2) = nanmean(GroupStats.SDFxz(rows));
+        meanTheta(n,i/2) = nanmean(GroupStats.meanTheta(rows)).*180/pi; % Convert to deg
+        SDtheta(n,i/2) = nanmean(GroupStats.SDTheta(rows)).*180/pi; % Convert to deg
+%         % Velocity of IP
+%         meanVxz(n,i/2) = nanmean(GroupStats.meanVxz(rows)); % Mean abs(v)
+%         SDVxz(n,i/2) = nanmean(GroupStats.SDVxz(rows)); % Mean abs(v)
+        % Power at IP 
+        meanPXZ(n,i/2) = nanmean(GroupStats.meanIPpowerXZ(rows)); % signed mean
+        SDPXZ(n,i/2) = nanmean(GroupStats.SDIPpowerXZ(rows));
+        
+        %% Torque
+        meanTyGd(n,i/2) = nanmean(GroupStats.meanTorqueYgd(rows)); % RMS mean
+        SDTyGd(n,i/2) = nanmean(GroupStats.SDTorqueYgd(rows));
+        meanTyTorso(n,i/2) = nanmean(GroupStats.meanTorqueYTorso(rows)); % RMS mean
+        SDTyTorso(n,i/2) = nanmean(GroupStats.SDTorqueYTorso(rows));
+        
+        %% Angular velocity and power
+        meanTorsoW(n,i/2) = nanmean(GroupStats.meanW(rows)); % RMS mean
+        meanPangGd(n,i/2) = nanmean(GroupStats.meanPowerAng(rows)); % signed mean
+        meanPangGdRMS(n,i/2) = nanmean(GroupStats.meanPowerAngRMS(rows)); % RMS mean
+        meanPangGdPos(n,i/2) = nanmean(GroupStats.meanPangPos(rows));
+        meanPangGdNeg(n,i/2) = nanmean(GroupStats.meanPangNeg(rows));
+        
+        %% Torque cross-corr to torso state
+        meanLagTyAngTorso(n,i/2) = nanmean(GroupStats.lagTyAngTorso(rows));
+        meanXcorrTyAngTorso(n,i/2) = nanmean(GroupStats.xcorrTyAngTorso(rows));
+        meanLagTyWTorso(n,i/2) = nanmean(GroupStats.lagTyWTorso(rows));
+        meanXcorrTyWTorso(n,i/2) = nanmean(GroupStats.xcorrTyWTorso(rows));
+        meanLagTyAlphaTorso(n,i/2) = nanmean(GroupStats.lagTyAlphaTorso(rows));
+        meanXcorrTyAlphaTorso(n,i/2) = nanmean(GroupStats.xcorrTyAlphaTorso(rows));
+        
+        %% Model fit rotational
+        % Regression beam-walker torso to force (nan value if n.s. fit)
+        meanMangPOB(n,i/2) = nanmean(GroupStats.m_ang_torso(rows));
+        meanBangPOB(n,i/2) = nanmean(GroupStats.b_ang_torso(rows));
+        meanKangPOB(n,i/2) = nanmean(GroupStats.k_ang_torso(rows));
+        meanRsqangPOB(n,i/2) = nanmean(GroupStats.Rsq_ang_torso(rows));
+        % Calculate percent of trials where param was sig.
+        if i == 4 % Assist Beam condition only
+            mangPOBsig(n) = length(find(~isnan(GroupStats.m_ang_torso(rows))))/length(GroupStats.m_ang_torso(rows));
+            bangPOBsig(n) = length(find(~isnan(GroupStats.b_ang_torso(rows))))/length(GroupStats.b_ang_torso(rows));
+            kangPOBsig(n) = length(find(~isnan(GroupStats.k_ang_torso(rows))))/length(GroupStats.k_ang_torso(rows));
+        end
+        
+        %% Old metrics %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % corr power to Fresid
+        meanrPowerFresX(n,i/2) = nanmean(GroupStats.rPowerFresX(rows));
+        % Pos and neg vel
+        meanPosVx(n,i/2) = nanmean(GroupStats.meanPosVx(rows));
+        meanNegVx(n,i/2) = nanmean(GroupStats.meanNegVx(rows));
+        % Pos and neg power and force
+        meanPosFx(n,i/2) = nanmean(GroupStats.meanPosFx(rows));
+        meanNegFx(n,i/2) = nanmean(GroupStats.meanNegFx(rows));
+        SDPosFx(n,i/2) = nanmean(GroupStats.SDPosFx(rows));
+        SDNegFx(n,i/2) = nanmean(GroupStats.SDNegFx(rows));
         meanPposX(n,i/2) = nanmean(GroupStats.meanPosPowerIntPtX(rows));
         meanPnegX(n,i/2) = nanmean(GroupStats.meanNegPowerIntPtX(rows));
         perPpos(n,i/2) = nanmean(GroupStats.perPposFposX(rows) + GroupStats.perPposFnegX(rows));
@@ -191,45 +347,13 @@ for subj = subj_array_force
         meanPnegFlo(n,i/2) = nanmean(GroupStats.meanIPpowerNegFlo(rows));
         meanPposFhi(n,i/2) = nanmean(GroupStats.meanIPpowerPosFhi(rows));
         meanPnegFhi(n,i/2) = nanmean(GroupStats.meanIPpowerNegFhi(rows));
-        
-%         % Power POB
-%         meanPmagPOBX(n,i/2) = nanmean(GroupStats.meanAbsPowerPOBX(rows));
-%         SDPmagPOBX(n,i/2) = nanmean(GroupStats.SDAbsPowerPOBX(rows));
-%         meanPposPOBX(n,i/2) = nanmean(GroupStats.meanPosPowerPOBX(rows));
-%         meanPnegPOBX(n,i/2) = nanmean(GroupStats.meanNegPowerPOBX(rows));
-%         perPposPOB(n,i/2) = nanmean(GroupStats.POBperPposFposX(rows) + GroupStats.POBperPposFnegX(rows));
-%         perPnegPOB(n,i/2) = nanmean(GroupStats.POBperPnegFposX(rows) + GroupStats.POBperPnegFnegX(rows));
-%         % Sum of work for trial (biased by trial length)
-%         PosWorkIntPtX(n,i/2) = nanmean(GroupStats.PosWorkIntPtX(rows));
-%         NegWorkIntPtX(n,i/2) = nanmean(GroupStats.NegWorkIntPtX(rows));
-%         % Mean of work vs. time for trial
-%         meanWorkIntPtX(n,i/2) = nanmean(GroupStats.meanWorkIntPtX(rows)); % Net work
-%         meanWorkMagIntPtX(n,i/2) = nanmean(GroupStats.meanWorkMagIntPtX(rows)); % Abs work
-%         meanPosWorkIntPtX(n,i/2) = nanmean(GroupStats.meanPosWorkIntPtX(rows));
-%         meanNegWorkIntPtX(n,i/2) = nanmean(GroupStats.meanNegWorkIntPtX(rows));
-        % Mean force vs. time for trial
-        meanFx(n,i/2) = nanmean(GroupStats.meanFx(rows)); % Just mean, not mean of abs value
-        SDFx(n,i/2) = nanmean(GroupStats.SDFx(rows));
-        meanPosFx(n,i/2) = nanmean(GroupStats.meanPosFx(rows));
-        meanNegFx(n,i/2) = nanmean(GroupStats.meanNegFx(rows));
-        % Force strategy proportion of time
-        perFpos(n,i/2) = nanmean(GroupStats.perPposFposX(rows) + GroupStats.perPnegFposX(rows));
-        perFneg(n,i/2) = nanmean(GroupStats.perPposFnegX(rows) + GroupStats.perPnegFnegX(rows));
-        % SD force vs. time for trial
-        SDFx(n,i/2) = nanmean(GroupStats.SDFx(rows));
-        SDPosFx(n,i/2) = nanmean(GroupStats.SDPosFx(rows));
-        SDNegFx(n,i/2) = nanmean(GroupStats.SDNegFx(rows));
-        % Velocity R FIN marker
-        meanVx(n,i/2) = nanmean(GroupStats.meanVx(rows)); % Mean abs(v)
-        SDVx(n,i/2) = nanmean(GroupStats.SDVx(rows)); % Mean abs(v)
-        meanPosVx(n,i/2) = nanmean(GroupStats.meanPosVx(rows));
-        meanNegVx(n,i/2) = nanmean(GroupStats.meanNegVx(rows));
-        % corr power to Fresid
-        meanrPowerFresX(n,i/2) = nanmean(GroupStats.rPowerFresX(rows));
         % xcorr IP to POB Torso
         meanxcorrFIPTorsoX(n,i/2) = nanmean(GroupStats.xcorrFIPTorsoX(rows));
         meanxcorrFIPvTorsoX(n,i/2) = nanmean(GroupStats.xcorrFIPvTorsoX(rows));
         meanxcorrvIPvTorsoX(n,i/2) = nanmean(GroupStats.xcorrvIPvTorsoX(rows));
+        % Force strategy proportion of time
+        perFpos(n,i/2) = nanmean(GroupStats.perPposFposX(rows) + GroupStats.perPnegFposX(rows));
+        perFneg(n,i/2) = nanmean(GroupStats.perPposFnegX(rows) + GroupStats.perPnegFnegX(rows));
         % xcorr lag IP to POB Torso
         meanLagFIPTorsoX(n,i/2) = nanmean(GroupStats.lagFIPTorsoX(rows));
         meanLagFIPvTorsoX(n,i/2) = nanmean(GroupStats.lagFIPvTorsoX(rows));
@@ -238,7 +362,7 @@ for subj = subj_array_force
         meanArmPOBX(n,i/2) = nanmean(GroupStats.meanArmPOBX(rows));
         SDarmPOBX(n,i/2) = nanmean(GroupStats.SDarmPOBX(rows));
         
-        %% Calculate corr's between pos/neg power and b/k values using all 
+        % Calculate corr's between pos/neg power and b/k values using all 
         % trials per subj. Only do for assist beam trials. Put each corr 
         % pair in column of metric. Col's: 1 = pos power and b, 2 = pos
         % power and k, 3 = neg power and b, 4 = neg power and k. corr done
@@ -272,9 +396,8 @@ for subj = subj_array_force
                 corrPbk(n,4) = nan;
             end
         end
-        % None sig!
 
-        %% torso x/ML dir
+        % Model coefficients POB torso x/ML dir
         % Keep all values for all trials to do boxplot for each subj
         if i == 4 % do for assist beam only
             meanMxArray{n} = GroupStats.mx_torso(rows);
@@ -288,14 +411,9 @@ for subj = subj_array_force
             meanRsqxLagArray{n} = GroupStats.Rsqx_lag_torso(rows);
         end
         
-        %% torso x/ML dir
+        % torso x/ML dir
         % Velocity torso marker
         meanVxPOB(n,i/2) = nanmean(GroupStats.meanVx_torso(rows));
-        % Regression beam-walker torso to force (nan value if n.s. fit)
-        meanMxPOB(n,i/2) = nanmean(GroupStats.mx_torso(rows));
-        meanBxPOB(n,i/2) = nanmean(GroupStats.bx_torso(rows));
-        meanKxPOB(n,i/2) = nanmean(GroupStats.kx_torso(rows));
-        meanRsqxPOB(n,i/2) = nanmean(GroupStats.Rsqx_torso(rows));
         % Standardized coefficients
         % Regression beam-walker torso to force (nan value if n.s. fit)
         meanMxPOBst(n,i/2) = nanmean(GroupStats.mx_torso_st(rows));
@@ -307,25 +425,14 @@ for subj = subj_array_force
         meanBxLagPOB(n,i/2) = nanmean(GroupStats.bx_lag_torso(rows));
         meanKxLagPOB(n,i/2) = nanmean(GroupStats.kx_lag_torso(rows));
         meanRsqxLagPOB(n,i/2) = nanmean(GroupStats.Rsqx_lag_torso(rows));
-        
-        %% Calculate percent of trials where param was sig.
-        if i == 4 % Assist Beam condition only
-            mxPOBsig(n) = length(find(~isnan(GroupStats.mx_torso(rows))))/length(GroupStats.mx_torso(rows));
-            bxPOBsig(n) = length(find(~isnan(GroupStats.bx_torso(rows))))/length(GroupStats.bx_torso(rows));
-            kxPOBsig(n) = length(find(~isnan(GroupStats.kx_torso(rows))))/length(GroupStats.kx_torso(rows));
-%             mzPOBsig(n) = length(find(~isnan(GroupStats.mz_torso(rows))))/length(GroupStats.mz_torso(rows));
-%             bzPOBsig(n) = length(find(~isnan(GroupStats.bz_torso(rows))))/length(GroupStats.bz_torso(rows));
-%             kzPOBsig(n) = length(find(~isnan(GroupStats.kz_torso(rows))))/length(GroupStats.kz_torso(rows));
-        end
 
-        %% IP x/ML dir
-        % Regression rFin to force (nan value if n.s. fit)
+        % Regression rFin to force (nan value if n.s. fit) ML dir
         meanMxIP(n,i/2) = nanmean(GroupStats.mx_IP(rows));
         meanBxIP(n,i/2) = nanmean(GroupStats.bx_IP(rows));
         meanKxIP(n,i/2) = nanmean(GroupStats.kx_IP(rows));
         meanRsqxIP(n,i/2) = nanmean(GroupStats.Rsqx_IP(rows));
         
-        %% Calculate subj mean and SD P and F sign combo, Assist Beam cond only
+        % Calculate subj mean and SD P and F sign combo, Assist Beam cond only
         if i == 4
             perPFmean(n,1) = nanmean(GroupStats.perPposFposX(rows)); % Q1
             perPFmean(n,4) = nanmean(GroupStats.perPposFnegX(rows)); % Q4
@@ -341,7 +448,10 @@ end
 
 save LateStats_groupMeans_force
 
-%% Plot means and SD's for IP force, vel, and power Overground vs. Beam bar plots
+%% Fx %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Plot means and SD's for IP force, vel, and power Overground vs. Beam x dir
+% bar plots
 % figure
 condLab{1} = 'Ground';
 condLab{2} = 'Beam';
@@ -373,7 +483,7 @@ bar(mean(meanVx),'linestyle','none');
 errorbar(mean(meanVx),std(meanVx),'linestyle','none','color','k');
 % boxplot(meanVx,'colors','k','symbol','o')
 set(gca,'xticklabel',condLab,'xtick',1:2); box off; set(gca,'tickdir','out');
-title('Mean |velocity|'),ylabel('(m/s)'); %xtickangle(45)
+title('Mean RMS velocity'),ylabel('(m/s)'); %xtickangle(45)
 xlim([0.5 2.5]);
 
 % SD Vel IP
@@ -382,7 +492,7 @@ bar(mean(SDVx),'linestyle','none');
 errorbar(mean(SDVx),std(SDVx),'linestyle','none','color','k');
 % boxplot(SDVx,'colors','k','symbol','o')
 set(gca,'xticklabel',condLab,'xtick',1:2); box off; set(gca,'tickdir','out');
-title('Velocity variability'),ylabel('(m/s)'); %xtickangle(45
+title('RMS velocity variability'),ylabel('(m/s)'); %xtickangle(45
 xlim([0.5 2.5]);
 
 % Mean Power IP
@@ -550,7 +660,739 @@ title(titlename),box off;
 % ylim([0 0.08]),xlim([0 8]);
 xlabel('(N)');ylabel('SD ML torso disp. (m)');
 
-%% Correlations of sway to force
+%% Plot regression POB color coded
+
+for n = 1:length(subj_array_force)
+    subj = subj_array_force(n);
+    % Find color
+    ind = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    
+    subplot(1,4,1)
+    hold on;
+    plot(1,meanRsqxPOB(n,2),'.','markersize',14,'color',colors(ind,:));
+    
+    subplot(1,4,2)
+    hold on;
+    plot(1,meanMxPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(1,4,3)
+    hold on;
+    plot(1,meanBxPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(1,4,4)
+    hold on;
+    plot(1,meanKxPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
+end
+
+plotind = 0;
+
+% ML dir
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanRsqxPOB(:,2),'colors','k','symbol','o'); hold on;
+title('R^2'); box off; set(gca,'xtick',5);
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanMxPOB(:,2),'colors','k','symbol','o'); 
+title('Mass'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('(kg)')
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanBxPOB(:,2),'colors','k','symbol','o');
+title('Damping'); hline(0,'k--');set(gca,'xtick',5); box off; 
+set(gca,'tickdir','out');
+ylabel('(Ns/m)');
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanKxPOB(:,2),'colors','k','symbol','o');
+title('Stiffness'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('(N/m)')
+
+s = [112   602   854   258];
+set(gcf,'outerposition',s)
+
+%% Plot regression POB standardized coeff's, color coded
+
+for n = 1:length(subj_array_force)
+    subj = subj_array_force(n);
+    % Find color
+    ind = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    
+    subplot(1,4,1)
+    hold on;
+    plot(1,meanRsqxPOBst(n,2),'.','markersize',14,'color',colors(ind,:));
+    
+    subplot(1,4,2)
+    hold on;
+    plot(1,meanMxPOBst(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(1,4,3)
+    hold on;
+    plot(1,meanBxPOBst(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(1,4,4)
+    hold on;
+    plot(1,meanKxPOBst(n,2),'.','markersize',14,'color',colors(ind,:)); 
+end
+
+plotind = 0;
+
+% ML dir
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanRsqxPOBst(:,2),'colors','k','symbol','o'); hold on;
+title('R^2'); box off; set(gca,'xtick',5);
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanMxPOBst(:,2),'colors','k','symbol','o'); 
+title('Mass'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('(kg)')
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanBxPOBst(:,2),'colors','k','symbol','o');
+title('Damping'); hline(0,'k--');set(gca,'xtick',5); box off; 
+set(gca,'tickdir','out');
+ylabel('(Ns/m)');
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanKxPOBst(:,2),'colors','k','symbol','o');
+title('Stiffness'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('(N/m)')
+
+s = [112   602   854   258];
+set(gcf,'outerposition',s)
+
+%% Correlations of model to metrics
+numrows = 2; numcols = 4;
+% Correlation of model to sway reduction in x dir
+
+% mass
+ind = 1;
+subplot(numrows,numcols,ind),hold on
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanMxPOB(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Mx','(N/(m/s^2))','SD torso_x disp. (m)'); 
+
+% Damping (b)
+ind = ind + 1;
+subplot(numrows,numcols,ind),hold on
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanBxPOB(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Bx','(N/(m/s))',[]); 
+
+% Stiffness (k)
+ind = ind + 1;
+subplot(numrows,numcols,ind),hold on
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanKxPOB(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Kx','(N/m)',[]); 
+
+% R^2
+ind = ind + 1;
+subplot(numrows,numcols,ind),hold on
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanRsqxPOB(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. R^2',[],[]); 
+
+% Correlations of model to mean Fx
+
+% Mass (m)
+ind = ind + 1;
+subplot(numrows,numcols,ind),hold on
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanRsqxPOB(:,2),meanFx(:,2),subj_array,subj_array_force,colors,'Mean Fx vs. Mx','(N/(m/s^2))','SD torso_x disp. (m)'); 
+
+% Damping (b)
+ind = ind + 1;
+subplot(numrows,numcols,ind),hold on
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanBxPOB(:,2),meanFx(:,2),subj_array,subj_array_force,colors,'Mean Fx vs. Bx','(N/(m/s))',[]); 
+
+% Stiffness (k)
+ind = ind + 1;
+subplot(numrows,numcols,ind),hold on
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanKxPOB(:,2),meanFx(:,2),subj_array,subj_array_force,colors,'Mean Fx vs. Kx','(N/m)',[]); 
+
+% R^2
+ind = ind + 1;
+subplot(numrows,numcols,ind),hold on
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanRsqxPOB(:,2),meanFx(:,2),subj_array,subj_array_force,colors,'Mean Fx vs. R^2',[],[]); 
+
+%% Fz %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Plot means and SD's for IP force, vel, and power Overground vs. Beam z dir
+% bar plots
+% figure
+condLab{1} = 'Ground';
+condLab{2} = 'Beam';
+
+% Means and SD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Mean Force IP
+subplot(2,6,1),hold on;
+h = barPlot2cond(meanFz,condLab,'Mean Fz','Tension > 0, (N)');
+
+% SD Force IP
+subplot(2,6,2),hold on;
+h = barPlot2cond(SDFz,condLab,'Fz variability','(N)');
+sigstar({[1,2]});
+
+% Mean Vel IP
+subplot(2,6,3),hold on;
+h = barPlot2cond(meanVz,condLab,'Mean RMS Vz','(m/s)');
+
+% SD Vel IP
+subplot(2,6,4),hold on;
+h = barPlot2cond(SDVz,condLab,'SD RMS Vz','(m/s)');
+
+% Mean Power IP
+subplot(2,6,5),hold on;
+h = barPlot2cond(meanPZ,condLab,'Mean Pz','(W)');
+sigstar({[1,2]});
+
+% SD Power IP
+subplot(2,6,6),hold on;
+h = barPlot2cond(SDPZ,condLab,'Pz Variability','(W)');
+
+% Scatterplots correlate metrics above to sway reduction %%%%%%%%%%%%%%%%%%
+% Calculate stats and plot here
+clear p r test ind
+
+% IP Force 
+subplot(2,6,7),hold on
+ind = 1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanFz(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Mean Fz','(N)','SD torso_x disp. (m)'); 
+
+% IP Force Var
+subplot(2,6,8),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(SDFz(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Fz Variab.','(N)',[]);
+
+% Mean Vel IP 
+subplot(2,6,9),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanVz(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Mean Vz','(m/s)',[]);
+
+% Vel IP Var 
+subplot(2,6,10),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(SDVx(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Vz Variab.','(m/s)',[]);
+
+% Mean P IP 
+subplot(2,6,11),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanPZ(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. mean Pz','(W)',[]);
+
+% P IP Var 
+subplot(2,6,12),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(SDPZ(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Pz Variab.','(W)',[]);
+
+%% Plot regression POB color coded
+
+for n = 1:length(subj_array_force)
+    subj = subj_array_force(n);
+    % Find color
+    ind = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    
+    subplot(1,4,1)
+    hold on;
+    plot(1,meanRsqzPOB(n,2),'.','markersize',14,'color',colors(ind,:));
+    
+    subplot(1,4,2)
+    hold on;
+    plot(1,meanMzPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(1,4,3)
+    hold on;
+    plot(1,meanBzPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(1,4,4)
+    hold on;
+    plot(1,meanKzPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
+end
+
+plotind = 0;
+
+% ML dir
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanRsqzPOB(:,2),'colors','k','symbol','o'); hold on;
+title('R^2'); box off; set(gca,'xtick',5);
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanMzPOB(:,2),'colors','k','symbol','o'); 
+title('Mass'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('N/(m/s^2)')
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanBzPOB(:,2),'colors','k','symbol','o');
+title('Damping'); hline(0,'k--');set(gca,'xtick',5); box off; 
+set(gca,'tickdir','out');
+ylabel('N/(m/s)');
+
+plotind = plotind + 1;
+subplot(1,4,plotind)
+boxplot(meanKzPOB(:,2),'colors','k','symbol','o');
+title('Stiffness'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('N/m')
+
+s = [112   602   854   258];
+set(gcf,'outerposition',s)
+
+%% Fxz 2D %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Plot means and SD's for IP force, vel, and power Overground vs. Beam xz plane
+% bar plots
+% figure
+condLab{1} = 'Ground';
+condLab{2} = 'Beam';
+
+% Means and SD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Mean Force IP
+subplot(2,6,1),hold on;
+h = barPlot2cond(meanFxz,condLab,'Mean Fxz','Tension > 0, (N)');
+sigstar({[1,2]});
+
+% SD Force IP
+subplot(2,6,2),hold on;
+h = barPlot2cond(SDFxz,condLab,'Fxz variability','(N)');
+sigstar({[1,2]});
+
+% Mean Theta 
+subplot(2,6,3),hold on;
+h = barPlot2cond(meanTheta,condLab,'Mean theta','deg');
+
+% SD Theta
+subplot(2,6,4),hold on;
+h = barPlot2cond(SDtheta,condLab,'SD theta','deg');
+sigstar({[1,2]});
+
+% % Mean Vel IP
+% subplot(2,6,3),hold on;
+% h = barPlot2cond(meanVz,condLab,'Mean RMS Vz','(m/s)');
+% 
+% % SD Vel IP
+% subplot(2,6,4),hold on;
+% h = barPlot2cond(SDVz,condLab,'SD RMS Vz','(m/s)');
+
+% Mean Power IP
+subplot(2,6,5),hold on;
+h = barPlot2cond(meanPXZ,condLab,'Mean Pxz','(W)');
+
+% SD Power IP
+subplot(2,6,6),hold on;
+h = barPlot2cond(SDPXZ,condLab,'Pxz Variability','(W)');
+
+% Scatterplots correlate metrics above to sway reduction %%%%%%%%%%%%%%%%%%
+% Calculate stats and plot here
+clear p r test ind
+
+% IP Force 
+subplot(2,6,7),hold on
+ind = 1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanFxz(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Mean Fxz','(N)','SD torso_z disp. (m)'); 
+
+% IP Force Var
+subplot(2,6,8),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(SDFxz(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Fxz Variab.','(N)',[]);
+
+% Mean Vel IP 
+subplot(2,6,9),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanTheta(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Mean Theta','(deg)',[]);
+
+% Vel IP Var 
+subplot(2,6,10),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(SDtheta(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Theta Variab.','(deg)',[]);
+
+% Mean P IP 
+subplot(2,6,11),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanPXZ(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. mean Pxz','(W)',[]);
+
+% P IP Var 
+subplot(2,6,12),hold on
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(SDPXZ(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Pxz Variab.','(W)',[]);
+
+%% Plot force vectors along theta of magnitude Fxz for all participants during beam-walking
+
+hold on;
+for cond = 1:2
+    subplot(1,2,cond),hold on;
+    for n = 1:length(meanTheta)
+        subj = subj_array_force(n);
+        thetaRad = meanTheta(n,cond)*pi/180;
+        u = meanFxz(n,cond)*cos(thetaRad);
+        v = meanFxz(n,cond)*sin(thetaRad);
+
+        indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
+
+        h = quiver(0,0,u,v,'color',colors(indC,:));
+    end
+    axis square
+    xlabel('Fxz*cos(theta)'),ylabel('Fxz*sin(theta)')
+    if cond == 1
+        title('Overground');
+    else
+        title('Beam');
+    end
+end
+
+%% Torque %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Bar plot means for TyGd, wTorso, PangGd Overground vs. Beam
+% Means only (SD of RMS value is weird)
+figure
+
+numrows = 2; numcols = 5;
+condLab{1} = 'Ground';
+condLab{2} = 'Beam';
+
+plotind = 0;
+% Mean Ty about ground axis
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanTyGd,condLab,'Mean RMS Ty gd','(Nm)');
+sigstar({[1,2]});
+
+% wTorso
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanTorsoW,condLab,'RMS Torso ang speed (rad/s)','');
+sigstar({[1,2]});
+
+% Angular power RMS
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanPangGdRMS,condLab,'RMS Angular Power (N*m/s)','');
+
+% Pos angular power 
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanPangGdPos,condLab,'Pos Ang Power (N*m/s)','');
+
+% Neg angular power 
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanPangGdNeg,condLab,'Neg Ang Power (N*m/s)','');
+
+% % Angular power signed
+% plotind = plotind + 1;
+% subplot(numrows,numcols,plotind),hold on;
+% h = barPlot2cond(meanPangGd,condLab,'Angular Power (N*m/s)','');
+% sigstar({[1,2]});
+% 
+
+% Scatterplots correlate metrics above to sway reduction %%%%%%%%%%%%%%%%%%
+% Calculate stats and plot here
+clear p r test ind
+
+% Ty 
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+ind = 1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanTyGd(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Mean Ty gd','(Nm)','SD ML torso disp. (m)'); 
+
+% wTorso
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanTorsoW(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. RMS Torso ang speed','(rad/s)',[]);
+
+% Angular power RMS
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanPangGdRMS(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. RMS Angular Power','(N*m/s)',[]);
+
+% Pos angular power
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanPangGdPos(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Pos Ang Power','(N*m/s)',[]);
+
+% Neg angular power
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+ind = ind+1;
+[h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanPangGdNeg(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Neg Ang Power','(N*m/s)',[]);
+
+% % Angular power
+% plotind = plotind + 1;
+% subplot(numrows,numcols,plotind),hold on;
+% ind = ind+1;
+% [h, p(ind), r(ind), test{ind}] = plotBivarCorr(meanPangGd(:,2),SwayVRedF,subj_array,subj_array_force,colors,'Sway Red. vs. Angular Power','(N*m/s)',[]);
+
+%% Plot xcorr Ty to torso state, informs lag for regression
+% Torque lags torso state variable if lag < 0
+
+figure
+numrows = 2; numcols = 3;
+condLab{1} = 'Ground';
+condLab{2} = 'Beam';
+
+plotind = 0;
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanLagTyAngTorso,condLab,'Mean lag Ty angTorso','(s)');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanLagTyWTorso,condLab,'Mean lag Ty wTorso','(s)');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanLagTyAlphaTorso,condLab,'Mean lag Ty alphaTorso','(s)');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanXcorrTyAngTorso,condLab,'Mean xcorr Ty angTorso','');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanXcorrTyWTorso,condLab,'Mean xcorr Ty wTorso','');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind),hold on;
+h = barPlot2cond(meanXcorrTyAlphaTorso,condLab,'Mean xcorr Ty alphaTorso','');
+
+%% Plot regression POB angular color coded (Partnered beam cond)
+% Also calculate thin rod inertia and plot to compare vs. fit inertia
+numrows = 1; numcols = 4;
+ind = 0;
+for subj = subj_array_force
+    ind = ind + 1;
+    % Get mass of subj for ang momentum metric. Since compare solo to
+    % assist beam, only care subj's with dynamics data
+    if subj == 3
+        mass = 49.3; % kg
+        height = 1.60; % m
+    elseif subj == 4
+        mass = 56.9; % kg
+        height = 1.61; % m
+    elseif subj == 5
+        mass = 73.8; % kg
+        height = 1.64; % m
+    elseif subj == 6
+        mass = 78.2; % kg
+        height = 1.73; % m
+    elseif subj == 7
+        mass = 76.0; % kg
+        height = 1.82; % m
+    elseif subj == 8
+        mass = 67.5; % kg
+        height = 1.69; % m
+    elseif subj == 9
+        mass = 75.2; % kg
+        height = 1.68; % m
+    elseif subj == 10
+        mass = 55.8; % kg
+        height = 1.61; % m
+    elseif subj == 11
+        mass = 62.0; % kg
+        height = 1.64; % m
+    elseif subj == 12
+        mass = 67.2; % kg
+        height = 1.72; % m
+    elseif subj == 13
+        mass = 54.8; % kg
+        height = 1.61; % m
+    elseif subj == 14
+        mass = 69.3; % kg
+        height = 1.78; % m
+    end
+    Icalc(ind) = mass*height^2/3;
+end 
+
+for n = 1:length(subj_array_force)
+    subj = subj_array_force(n);
+    % Find color
+    ind = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    
+    subplot(numrows,numcols,1)
+    hold on;
+    plot(1,meanRsqangPOB(n,2),'.','markersize',14,'color',colors(ind,:));
+    
+    subplot(numrows,numcols,2)
+    hold on;
+    plot(1,meanMangPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+%     subplot(numrows,numcols,3)
+%     hold on;
+%     plot(1,Icalc(n),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(numrows,numcols,3)
+    hold on;
+    plot(1,meanBangPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(numrows,numcols,4)
+    hold on;
+    plot(1,meanKangPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
+end
+
+plotind = 0;
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(meanRsqangPOB(:,2),'colors','k','symbol','o'); hold on;
+title('R^2'); box off; set(gca,'xtick',5);
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(meanMangPOB(:,2),'colors','k','symbol','o'); 
+title('Inertia fit'); hline(0,'k--');
+box off; set(gca,'xtick',5); % set(gca,'xtick',1:2,'xticklabel',{'Fit','Est'});
+ylabel('(kg*m^2)')
+
+% plotind = plotind + 1;
+% subplot(numrows,numcols,plotind)
+% boxplot(Icalc,'colors','k','symbol','o');
+% title('Inertia est'); hline(0,'k--');set(gca,'xtick',5); box off; 
+% set(gca,'tickdir','out');
+% ylabel('(kg*m^2)');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(meanBangPOB(:,2),'colors','k','symbol','o');
+title('Damping'); hline(0,'k--');set(gca,'xtick',5); box off; 
+set(gca,'tickdir','out');
+ylabel('(N*m)/(rad/s)');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(meanKangPOB(:,2),'colors','k','symbol','o');
+title('Stiffness'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('(N*m)/rad)')
+
+s = [112   602   854   258];
+set(gcf,'outerposition',s)
+
+%% Plot regression POB angular color coded (Partnered ground cond)
+% Also calculate thin rod inertia and plot to compare vs. fit inertia
+numrows = 1; numcols = 4;
+ind = 0;
+for subj = subj_array_force
+    ind = ind + 1;
+    % Get mass of subj for ang momentum metric. Since compare solo to
+    % assist beam, only care subj's with dynamics data
+    if subj == 3
+        mass = 49.3; % kg
+        height = 1.60; % m
+    elseif subj == 4
+        mass = 56.9; % kg
+        height = 1.61; % m
+    elseif subj == 5
+        mass = 73.8; % kg
+        height = 1.64; % m
+    elseif subj == 6
+        mass = 78.2; % kg
+        height = 1.73; % m
+    elseif subj == 7
+        mass = 76.0; % kg
+        height = 1.82; % m
+    elseif subj == 8
+        mass = 67.5; % kg
+        height = 1.69; % m
+    elseif subj == 9
+        mass = 75.2; % kg
+        height = 1.68; % m
+    elseif subj == 10
+        mass = 55.8; % kg
+        height = 1.61; % m
+    elseif subj == 11
+        mass = 62.0; % kg
+        height = 1.64; % m
+    elseif subj == 12
+        mass = 67.2; % kg
+        height = 1.72; % m
+    elseif subj == 13
+        mass = 54.8; % kg
+        height = 1.61; % m
+    elseif subj == 14
+        mass = 69.3; % kg
+        height = 1.78; % m
+    end
+    Icalc(ind) = mass*height^2/3;
+end 
+
+figure
+for n = 1:length(subj_array_force)
+    subj = subj_array_force(n);
+    % Find color
+    ind = find(subj_array == subj,1,'first'); % Use same color as kinem data
+    
+    subplot(numrows,numcols,1)
+    hold on;
+    plot(1,meanRsqangPOB(n,1),'.','markersize',14,'color',colors(ind,:));
+    
+    subplot(numrows,numcols,2)
+    hold on;
+    plot(1,meanMangPOB(n,1),'.','markersize',14,'color',colors(ind,:)); 
+    
+%     subplot(numrows,numcols,3)
+%     hold on;
+%     plot(1,Icalc(n),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(numrows,numcols,3)
+    hold on;
+    plot(1,meanBangPOB(n,1),'.','markersize',14,'color',colors(ind,:)); 
+    
+    subplot(numrows,numcols,4)
+    hold on;
+    plot(1,meanKangPOB(n,1),'.','markersize',14,'color',colors(ind,:)); 
+end
+
+plotind = 0;
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(meanRsqangPOB(:,1),'colors','k','symbol','o'); hold on;
+title('R^2'); box off; set(gca,'xtick',5);
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(meanMangPOB(:,1),'colors','k','symbol','o'); 
+title('Inertia fit'); hline(0,'k--');
+box off; set(gca,'xtick',5); % set(gca,'xtick',1:2,'xticklabel',{'Fit','Est'});
+ylabel('(kg*m^2)')
+
+% plotind = plotind + 1;
+% subplot(numrows,numcols,plotind)
+% boxplot(Icalc,'colors','k','symbol','o');
+% title('Inertia est'); hline(0,'k--');set(gca,'xtick',5); box off; 
+% set(gca,'tickdir','out');
+% ylabel('(kg*m^2)');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(meanBangPOB(:,1),'colors','k','symbol','o');
+title('Damping'); hline(0,'k--');set(gca,'xtick',5); box off; 
+set(gca,'tickdir','out');
+ylabel('(N*m)/(rad/s)');
+
+plotind = plotind + 1;
+subplot(numrows,numcols,plotind)
+boxplot(meanKangPOB(:,1),'colors','k','symbol','o');
+title('Stiffness'); hline(0,'k--');
+box off; set(gca,'xtick',5);
+ylabel('(N*m)/rad)')
+
+s = [112   602   854   258];
+set(gcf,'outerposition',s)
+
+%% Old plots after this point %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Correlations of sway (not improvement in balance) to Fx
 
 % IP Force vs Sway
 [c,ia,ib] = intersect(subj_array,subj_array_force);
@@ -573,132 +1415,7 @@ else
 end
 title(titlename),box off;
 xlabel('(m)');ylabel('(N)');
-
-%% Correlations of m, b, k to sway or sway reduction
-
-subplot(1,3,1),hold on
-% Mass (m)
-for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
-    subj = subj_array_force(i);
-    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
-    plot(meanMxPOB(i,2),SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
-end
-[p,r,test] = corr2vars(SwayVRedF,meanMxPOB(:,2))
-%p = 6*p; % Bonferroni correction
-if p(1) < 0.05
-    c = polyfit(meanMxPOB(:,2),SwayVRedF,1);
-    plot(meanMxPOB(:,2),polyval(c,meanMxPOB(:,2)),'k--');
-    titlename = sprintf('Sway Reduction vs. Mass \np = %.2f, rho = %.2f',p,r); 
-else
-    titlename = sprintf('Sway Reduction vs. Mass \np = %.2f',p); 
-end
-title(titlename),box off;
-% ylim([0 0.08]),xlim([0 8]);
-ylabel('(m)');xlabel('Mass (kg)')%,ylim([0 8])
-
-subplot(1,3,2),hold on
-% Damping (b)
-for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
-    subj = subj_array_force(i);
-    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
-    plot(meanBxPOB(i,2),SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
-end
-[p,r,test] = corr2vars(SwayVRedF,meanBxPOB(:,2))
-%p = 6*p; % Bonferroni correction
-if p < 0.05
-    c = polyfit(meanBxPOB(:,2),SwayVRedF,1);
-    plot(meanBxPOB(:,2),polyval(c,meanBxPOB(:,2)),'k--');
-    titlename = sprintf('Sway Reduction vs. Damping \np = %.2f, rho = %.2f',p,r); 
-else
-    titlename = sprintf('Sway Reduction vs. Damping \np = %.2f',p); 
-end
-title(titlename),box off;
-ylabel('(m)');xlabel('Damping (N/(m/s))')%,ylim([0 8])
-
-subplot(1,3,3),hold on
-% Stiffness (k)
-for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
-    subj = subj_array_force(i);
-    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
-    plot(meanKxPOB(i,2),SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
-end
-[p,r,test] = corr2vars(SwayVRedF,meanKxPOB(:,2))
-%p = 6*p; % Bonferroni correction
-if p(3) < 0.05
-    c = polyfit(SwayVRedF,meanKxPOB(:,2),1);
-    plot(meanKxPOB(:,2),polyval(c,SwayVRedF),'k--');
-    titlename = sprintf('Sway Reduction vs. Stiffness \np = %.2f, rho = %.2f',p,r); 
-else
-    titlename = sprintf('Sway Reduction vs. Stiffness \np = %.2f',p); 
-end
-title(titlename),box off;
-% ylim([0 0.08]),xlim([0 8]);
-ylabel('(m)');xlabel('Stiffness (N/m)')%,ylim([0 8])
-
-%% Correlations of m, b, k to mean F
-
-% subplot(1,3,1),hold on
-% % Mass (m)
-% for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
-%     subj = subj_array_force(i);
-%     indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
-%     plot(meanMxPOB(i,2),meanFx(i,2),'.','markersize',14,'color',colors(indC,:));
-% end
-% [r(1),p(1)] = corr(meanFx(:,2),meanMxPOB(:,2));
-% %p = 6*p; % Bonferroni correction
-% if p(1) < 0.05
-%     c = polyfit(meanMxPOB(:,2),meanFx(:,2),1);
-%     plot(meanMxPOB(:,2),polyval(c,meanMxPOB(:,2)),'k--');
-%     titlename = sprintf('Mean Force vs. Mass \np = %.2f, rho = %.2f',p(1),r(1)); 
-% else
-%     titlename = sprintf('Mean Force vs. Mass \np = %.2f',p(1)); 
-% end
-% title(titlename),box off;
-% % ylim([0 0.08]),xlim([0 8]);
-% ylabel('(N)');xlabel('Mass (kg)'),ylim([0 8])
-
-% subplot(1,3,2),hold on
-% Damping (b)
-for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
-    subj = subj_array_force(i);
-    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
-    plot(meanBxPOB(i,2),meanFx(i,2),'.','markersize',14,'color',colors(indC,:));
-end
-[p,r,test] = corr2vars(meanFx(:,2),meanBxPOB(:,2))
-%p = 6*p; % Bonferroni correction
-if p(2) < 0.05
-    c = polyfit(meanBxPOB(:,2),meanFx(:,2),1);
-    plot(meanBxPOB(:,2),polyval(c,meanBxPOB(:,2)),'k--');
-    titlename = sprintf('Mean Force vs. Damping \np = %.2f, rho = %.2f',p,r); 
-else
-    titlename = sprintf('Mean Force vs. Damping \np = %.2f',p); 
-end
-title(titlename),box off;
-% ylim([0 0.08]),xlim([0 8]);
-ylabel('(N)');xlabel('Damping (N/(m/s))'),ylim([0 8])
-
-% subplot(1,3,3),hold on
-% % Stiffness (k)
-% for i = 1:length(subj_array_force) % must plot one at a time to get diff color point
-%     subj = subj_array_force(i);
-%     indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
-%     plot(meanKxPOB(i,2),meanFx(i,2),'.','markersize',14,'color',colors(indC,:));
-% end
-% [r(3),p(3)] = corr(meanKxPOB(:,2),meanFx(:,2));
-% %p = 6*p; % Bonferroni correction
-% if p(2) < 0.05
-%     c = polyfit(meanFx(:,2),meanKxPOB(:,2),1);
-%     plot(meanKxPOB(:,2),polyval(c,meanFx(:,2)),'k--');
-%     titlename = sprintf('Mean Force vs. Stiffness \np = %.2f, rho = %.2f',p(3),r(3)); 
-% else
-%     titlename = sprintf('Mean Force vs. Stiffness \np = %.2f',p(3)); 
-% end
-% title(titlename),box off;
-% % ylim([0 0.08]),xlim([0 8]);
-% ylabel('(N)');xlabel('Stiffness (N/m)'),ylim([0 8])
-
-
-%% % Power POB torso
+%% % Power POB torso in x dir
 % subplot(2,3,3),hold on;
 % for n = 1:length(subj_array_force)
 %     subj = subj_array_force(n);
@@ -1003,118 +1720,6 @@ axis square
 set(gca,'xtick',2:4,'ytick',2:4) % no ticks
 % vline(0,'k-');hline(0,'k-'); box on;
 vline(0.5,'k-');hline(0.5,'k-'); box on;
-
-%% Plot regression POB color coded
-
-for n = 1:length(subj_array_force)
-    subj = subj_array_force(n);
-    % Find color
-    ind = find(subj_array == subj,1,'first'); % Use same color as kinem data
-    
-    subplot(1,4,1)
-    hold on;
-    plot(1,meanRsqxPOB(n,2),'.','markersize',14,'color',colors(ind,:));
-    
-    subplot(1,4,2)
-    hold on;
-    plot(1,meanMxPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
-    
-    subplot(1,4,3)
-    hold on;
-    plot(1,meanBxPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
-    
-    subplot(1,4,4)
-    hold on;
-    plot(1,meanKxPOB(n,2),'.','markersize',14,'color',colors(ind,:)); 
-end
-
-plotind = 0;
-
-% ML dir
-plotind = plotind + 1;
-subplot(1,4,plotind)
-boxplot(meanRsqxPOB(:,2),'colors','k','symbol','o'); hold on;
-title('R^2'); box off; set(gca,'xtick',5);
-
-plotind = plotind + 1;
-subplot(1,4,plotind)
-boxplot(meanMxPOB(:,2),'colors','k','symbol','o'); 
-title('Mass'); hline(0,'k--');
-box off; set(gca,'xtick',5);
-ylabel('(kg)')
-
-plotind = plotind + 1;
-subplot(1,4,plotind)
-boxplot(meanBxPOB(:,2),'colors','k','symbol','o');
-title('Damping'); hline(0,'k--');set(gca,'xtick',5); box off; 
-set(gca,'tickdir','out');
-ylabel('(Ns/m)');
-
-plotind = plotind + 1;
-subplot(1,4,plotind)
-boxplot(meanKxPOB(:,2),'colors','k','symbol','o');
-title('Stiffness'); hline(0,'k--');
-box off; set(gca,'xtick',5);
-ylabel('(N/m)')
-
-s = [112   602   854   258];
-set(gcf,'outerposition',s)
-
-%% Plot regression POB standardized coeff's, color coded
-
-for n = 1:length(subj_array_force)
-    subj = subj_array_force(n);
-    % Find color
-    ind = find(subj_array == subj,1,'first'); % Use same color as kinem data
-    
-    subplot(1,4,1)
-    hold on;
-    plot(1,meanRsqxPOBst(n,2),'.','markersize',14,'color',colors(ind,:));
-    
-    subplot(1,4,2)
-    hold on;
-    plot(1,meanMxPOBst(n,2),'.','markersize',14,'color',colors(ind,:)); 
-    
-    subplot(1,4,3)
-    hold on;
-    plot(1,meanBxPOBst(n,2),'.','markersize',14,'color',colors(ind,:)); 
-    
-    subplot(1,4,4)
-    hold on;
-    plot(1,meanKxPOBst(n,2),'.','markersize',14,'color',colors(ind,:)); 
-end
-
-plotind = 0;
-
-% ML dir
-plotind = plotind + 1;
-subplot(1,4,plotind)
-boxplot(meanRsqxPOBst(:,2),'colors','k','symbol','o'); hold on;
-title('R^2'); box off; set(gca,'xtick',5);
-
-plotind = plotind + 1;
-subplot(1,4,plotind)
-boxplot(meanMxPOBst(:,2),'colors','k','symbol','o'); 
-title('Mass'); hline(0,'k--');
-box off; set(gca,'xtick',5);
-ylabel('(kg)')
-
-plotind = plotind + 1;
-subplot(1,4,plotind)
-boxplot(meanBxPOBst(:,2),'colors','k','symbol','o');
-title('Damping'); hline(0,'k--');set(gca,'xtick',5); box off; 
-set(gca,'tickdir','out');
-ylabel('(Ns/m)');
-
-plotind = plotind + 1;
-subplot(1,4,plotind)
-boxplot(meanKxPOBst(:,2),'colors','k','symbol','o');
-title('Stiffness'); hline(0,'k--');
-box off; set(gca,'xtick',5);
-ylabel('(N/m)')
-
-s = [112   602   854   258];
-set(gcf,'outerposition',s)
 
 %% Plot regression IP color coded
 
@@ -1587,49 +2192,7 @@ end
 box off;
 xlabel('Solo beam dist (m)'),ylabel('stiffness (N/m)');
 
-%% Plot improvement (with assistance) in sway variability vs. metrics for Assist Beam cond
-plotind = 1;
-
-% Mean F mag
-subplot(3,4,plotind),hold on
-for i = 1:length(subj_array_force)
-    subj = subj_array_force(i);
-    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
-    plot(meanFx(i,2),-SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
-end
-[r,p] = corr(meanFx(:,2),-SwayVRedF);
-if p < 0.05
-    c = polyfit(meanFx(:,2),-SwayVRedF,1);
-    plot(meanFx(:,2),polyval(c,meanFx(:,2)),'k--');
-    titlename = sprintf('p = %.2f, p_B = %.2f, rho = %.2f',p,p*12,r(plotind)); 
-else
-    titlename = sprintf('p = %.2f, p_B = %.2f',p(plotind),p(plotind)*12); 
-end
-title(titlename),box off;
-ylim([0 0.08]),xlim([0 8]);
-xlabel('Mean Force Mag. (N)');
-
-% Mean P IP mag
-plotind = plotind+1;
-subplot(3,4,plotind),hold on
-for i = 1:length(subj_array_force)
-    subj = subj_array_force(i);
-    indC = find(subj_array == subj,1,'first'); % Use same color as kinem data
-    plot(meanPmagX(i,2),-SwayVRedF(i),'.','markersize',14,'color',colors(indC,:));
-end
-
-[r(plotind),p(plotind)] = corr(meanPmagX(:,2),-SwayVRedF);
-if p(plotind) < 0.05
-    c = polyfit(meanPmagX(:,2),-SwayVRedF,1);
-    plot(meanPmagX(:,2),polyval(c,meanPmagX(:,2)),'k--');
-    titlename = sprintf('p = %.2f, rho = %.2f',p(plotind),r(plotind));
-else
-    titlename = sprintf('p = %.2f, p_B = %.2f',p(plotind),p(plotind)*12); 
-end
-title(titlename),box off; ylim([0 0.08]),xlim([0 0.6]);
-xlabel('Mean Power Mag. (W)');
-
-% % SD F mag
+%% % SD F mag
 % plotind = plotind+1;
 % subplot(3,4,plotind),hold on
 % for i = 1:length(subj_array_force)
@@ -1668,7 +2231,7 @@ xlabel('Mean Power Mag. (W)');
 % ylim([0 0.08]),xlim([0 0.5]); title(titlename),box off;
 % xlabel('Power Mag. Var. (W)');
 
-% Tension force mag
+%% Tension force mag
 plotind = plotind+1;
 subplot(3,4,plotind),hold on
 for i = 1:length(subj_array_force)
@@ -1947,7 +2510,6 @@ xlabel('Stiffness (N/m)');
 a = findobj(gcf,'type','axes');
 set(a,'tickdir','out','ytick',0:0.04:0.08)
 
-%% Old plots after this point %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Plot mean net work done per trial
 
 plotind = 0;
